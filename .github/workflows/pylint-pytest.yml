@@ -1,3 +1,16 @@
+name: Pytest and pylint
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '**.py'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.py'
+
 jobs:
   linting:
       runs-on: ubuntu-latest
