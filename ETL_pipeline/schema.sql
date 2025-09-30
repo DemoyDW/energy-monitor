@@ -45,8 +45,8 @@ CREATE TABLE outage_postcode_link (
 -- Customer table
 CREATE TABLE customer (
     customer_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name VARCHAR(100) NOT NULL, 
-    email VARCHAR(100) NOT NULL UNIQUE,
+    customer_name VARCHAR(100) NOT NULL, 
+    customer_email VARCHAR(100) NOT NULL UNIQUE,
     postcode_id int NOT NULL,
     FOREIGN KEY(postcode_id) REFERENCES postcode(postcode_id)
 );
@@ -62,18 +62,13 @@ CREATE TABLE customer_postcode_link(
 );
 
 
--- Reading Type table
-CREATE TABLE reading_type (
-    reading_type_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    reading_type VARCHAR(100) NOT NULL
-);
+
 
 
 -- Power Reading table 
 CREATE TABLE power_reading(
     power_reading_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    date_time TIMESTAMP,
-    reading_type_id int NOT NULL,      
+    date_time TIMESTAMP,    
     gas float NOT NULL,
     coal float NOT NULL,
     biomass float NOT NULL,
