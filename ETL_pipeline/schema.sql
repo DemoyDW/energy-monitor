@@ -46,9 +46,7 @@ CREATE TABLE outage_postcode_link (
 CREATE TABLE customer (
     customer_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     customer_name VARCHAR(100) NOT NULL, 
-    customer_email VARCHAR(100) NOT NULL UNIQUE,
-    postcode_id int NOT NULL,
-    FOREIGN KEY(postcode_id) REFERENCES postcode(postcode_id)
+    customer_email VARCHAR(100) NOT NULL UNIQUE
 );
 
 
@@ -78,6 +76,8 @@ CREATE TABLE power_reading(
     other float NOT NULL,
     wind float NOT NULL,
     solar float NOT NULL,
+    price float NOT NULL,
+    demand int NOT NULL,
     belgium int NOT NULL,
     france int NOT NULL,
     netherlands int NOT NULL,
