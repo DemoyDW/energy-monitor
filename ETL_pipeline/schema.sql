@@ -1,42 +1,5 @@
 -- Energy monitor schema
 
--- Settlement table
-CREATE TABLE settlement (
-    settlement_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    start_time TIMESTAMP,
-    end_time TIMESTAMP
-);
-
--- Energy price table 
-CREATE TABLE energy_price(
-    energy_price_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    price int NOT NULL,
-    settlement_id int NOT NULL,
-    FOREIGN KEY(settlement_id) REFERENCES settlement(settlement_id)
-    );
-
--- Demand table 
-CREATE TABLE demand(
-    demand_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    demand int NOT NULL,
-    settlement_id int NOT NULL,
-    FOREIGN KEY(settlement_id) REFERENCES settlement(settlement_id)
-    );
-
--- Import table 
-CREATE TABLE import(
-    import_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    settlement_id int NOT NULL,
-    belgium int NOT NULL,
-    france int NOT NULL,
-    netherlands int NOT NULL,
-    denmark int NOT NULL,
-    norway int NOT NULL,
-    ireland int NOT NULL,
-    n_ireland int NOT NULL,
-    FOREIGN KEY(settlement_id) REFERENCES settlement(settlement_id)
-    );
-
 -- Category table
 CREATE TABLE category (
     category_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -49,9 +12,7 @@ CREATE TABLE outage (
     start_time TIMESTAMP,
     etr TIMESTAMP,
     category_id int NOT NULL,
-    settlement_id int NOT NULL,
-    FOREIGN KEY (category_id) REFERENCES category(category_id),
-    FOREIGN KEY(settlement_id) REFERENCES settlement(settlement_id)
+    FOREIGN KEY (category_id) REFERENCES category(category_id)
     );
 
 
@@ -91,6 +52,16 @@ CREATE TABLE customer (
 );
 
 
+-- Customer postcode link table
+CREATE TABLE customer_postcode_link(
+    customer_postcode_link_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    customer_id int NOT NULL,
+    postcode_id int NOT NULL,
+    FOREIGN KEY(customer_id) REFERENCES customer(customer_id),
+    FOREIGN KEY(postcode_id) REFERENCES postcode(postcode_id)
+);
+
+
 -- Reading Type table
 CREATE TABLE reading_type (
     reading_type_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -98,11 +69,10 @@ CREATE TABLE reading_type (
 );
 
 
--- Reading table 
-CREATE TABLE reading(
-    reading_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    settlement_id int NOT NULL,
-    region_id int NOT NULL,  
+-- Power Reading table 
+CREATE TABLE power_reading(
+    power_reading_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    date_time TIMESTAMP,
     reading_type_id int NOT NULL,      
     gas float NOT NULL,
     coal float NOT NULL,
@@ -113,7 +83,31 @@ CREATE TABLE reading(
     other float NOT NULL,
     wind float NOT NULL,
     solar float NOT NULL,
-    FOREIGN KEY(settlement_id) REFERENCES settlement(settlement_id),
-    FOREIGN KEY(region_id) REFERENCES region(region_id),
-    FOREIGN KEY(reading_type_id) REFERENCES reading_type(reading_type_id)   
+    belgium int NOT NULL,
+    france int NOT NULL,
+    netherlands int NOT NULL,
+    denmark int NOT NULL,
+    norway int NOT NULL,
+    ireland int NOT NULL,
+    n_ireland int NOT NULL
     );
+
+
+
+-- Carbon Reading table 
+CREATE TABLE carbon_reading(
+    carbon_reading_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    date_time TIMESTAMP,
+    region_id int NOT NULL,      
+    gas float NOT NULL,
+    coal float NOT NULL,
+    biomass float NOT NULL,
+    nuclear float NOT NULL,
+    hydro float NOT NULL,
+    imports float NOT NULL,
+    other float NOT NULL,
+    wind float NOT NULL,
+    solar float NOT NULL
+    );
+
+
