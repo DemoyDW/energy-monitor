@@ -1,4 +1,4 @@
-INSERT INTO regions (region_name) VALUES
+INSERT INTO region (region_name) VALUES
 ('North Scotland'),
 ('South Scotland'),
 ('North West England'),
@@ -15,5 +15,5 @@ INSERT INTO regions (region_name) VALUES
 ('South East England'),
 ('England'),
 ('Scotland'),
-('Wales')
+('Wales'),
 ('GB');
