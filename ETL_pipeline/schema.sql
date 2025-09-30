@@ -58,7 +58,7 @@ CREATE TABLE outage (
 -- region table
 CREATE TABLE region (
     region_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    region_name VARCHAR(100) NOT NULL,
+    region_name VARCHAR(100) NOT NULL
 );
 
 
@@ -94,7 +94,7 @@ CREATE TABLE customer (
 -- Reading Type table
 CREATE TABLE reading_type (
     reading_type_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    reading_type VARCHAR(100) NOT NULL,
+    reading_type VARCHAR(100) NOT NULL
 );
 
 
@@ -113,7 +113,7 @@ CREATE TABLE reading(
     other float NOT NULL,
     wind float NOT NULL,
     solar float NOT NULL,
-    FOREIGN KEY(settlement_id) REFERENCES settlement(settlement_id)
-    FOREIGN KEY(region_id) REFERENCES region(reading_id)
+    FOREIGN KEY(settlement_id) REFERENCES settlement(settlement_id),
+    FOREIGN KEY(region_id) REFERENCES region(region_id),
     FOREIGN KEY(reading_type_id) REFERENCES reading_type(reading_type_id)   
     );
