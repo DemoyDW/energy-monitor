@@ -87,12 +87,3 @@ def transform_outages(raw: pd.DataFrame) -> dict[str, pd.DataFrame]:
         "outage_postcode_link": link_df
     }
 
-
-if __name__ == "__main__":
-    # Quick test run with a local CSV
-    raw = pd.read_csv("power_outage_ext.csv")
-    tables = transform_outages(raw)
-
-    for name, df in tables.items():
-        print(f"\n--- {name.upper()} ({len(df)} rows) ---")
-        print(df.head(10))
