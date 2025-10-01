@@ -7,7 +7,7 @@ import io
 from unittest.mock import patch, MagicMock
 import pandas as pd
 import pytest
-from get_csv import generate_outage_csv
+from extract_outages_csv import generate_outage_csv
 
 
 @patch("get_csv.requests.get")
