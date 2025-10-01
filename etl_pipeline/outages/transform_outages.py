@@ -2,6 +2,7 @@
 Transform script for National Grid outage data.
 Takes the raw outage CSV extract and reshapes it into tables
 that match the ERD: outage, postcode, outage_postcode_link.
+Now ensures times are interpreted as UK local time.
 """
 
 import pandas as pd
@@ -21,28 +22,34 @@ CATEGORY_MAP = {
     "HV FUSE": 11,
     "HV UNDERGROUND": 12,
     "EHV OVERHEAD": 13,
-    "HV PLANT": 14
+    "HV PLANT": 14,
 }
 
 
+def parse_uk_time(series: pd.Series) -> pd.Series:
+    """Parse datetimes as UK local time with DST awareness."""
+    return (
+        pd.to_datetime(series, errors="coerce")
+        .dt.tz_localize("Europe/London", ambiguous="NaT", nonexistent="NaT")
+    )
+
+
 def build_outage_table(raw: pd.DataFrame) -> pd.DataFrame:
-    """Transform raw outage records, map categories, and tag as current/historical."""
+    """Transform raw outage records, map categories, and tag as current/historical (UK time)."""
     outage_df = raw[["Incident ID", "Start Time", "ETR", "Category"]].copy()
     outage_df.columns = ["outage_id", "start_time", "etr", "category"]
 
-    # Parse datetimes
-    outage_df["start_time"] = pd.to_datetime(
-        outage_df["start_time"], utc=True, errors="coerce")
-    outage_df["etr"] = pd.to_datetime(
-        outage_df["etr"], utc=True, errors="coerce")
+    # Parse datetimes as UK local time
+    outage_df["start_time"] = parse_uk_time(outage_df["start_time"])
+    outage_df["etr"] = parse_uk_time(outage_df["etr"])
 
     # Map category to seeded IDs
     outage_df["category_id"] = outage_df["category"].map(CATEGORY_MAP)
 
     # Tag outages as current or historical
-    now = pd.Timestamp.utcnow()
+    now_uk = pd.Timestamp.now(tz="Europe/London")
     outage_df["status"] = outage_df["etr"].apply(
-        lambda x: "current" if pd.notna(x) and x >= now else "historical"
+        lambda x: "current" if pd.notna(x) and x >= now_uk else "historical"
     )
 
     # Drop raw category text
@@ -67,7 +74,9 @@ def build_postcode_table(raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]
     return postcode_df, postcodes
 
 
-def build_outage_postcode_link(postcodes: pd.DataFrame, postcode_df: pd.DataFrame) -> pd.DataFrame:
+def build_outage_postcode_link(
+    postcodes: pd.DataFrame, postcode_df: pd.DataFrame
+) -> pd.DataFrame:
     """Create the many-to-many link between outages and postcodes."""
     link_df = postcodes.merge(
         postcode_df, left_on="Postcodes", right_on="postcode"
@@ -84,7 +93,7 @@ def transform_outages(raw: pd.DataFrame) -> dict[str, pd.DataFrame]:
     return {
         "outage": outage_df,
         "postcode": postcode_df,
-        "outage_postcode_link": link_df
+        "outage_postcode_link": link_df,
     }
 
 
@@ -95,4 +104,4 @@ if __name__ == "__main__":
 
     for name, df in tables.items():
         print(f"\n--- {name.upper()} ({len(df)} rows) ---")
-        print(df.head(10))
+        print(df.head())
