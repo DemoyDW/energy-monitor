@@ -31,7 +31,7 @@ def get_demand_summary() -> pd.DataFrame:
     """Get demand summary from API."""
 
     response = req.get(
-        "https://data.elexon.co.uk/bmrs/api/v1/demand/outturn/summary?resolution=minute&format=json", timeout=20)
+        f"{BASE_ELEXON}/demand/outturn/summary?resolution=minute&format=json", timeout=20)
 
     demand_data = response.json()
 
@@ -44,7 +44,7 @@ def get_energy_pricing(start_time: str, end_time: str) -> dict:
     start = start_time.replace('+00:00', 'Z')
     end = end_time.replace('+00:00', 'Z')
 
-    url = f"https://data.elexon.co.uk/bmrs/api/v1/balancing/pricing/market-index?from={start}&to={end}"
+    url = f"{BASE_ELEXON}/balancing/pricing/market-index?from={start}&to={end}"
     response = req.get(url, timeout=20)
     data = response.json()['data']
 
@@ -56,7 +56,7 @@ def get_generation_by_type(start_time: str, end_time: str) -> pd.DataFrame:
     Fetch generation outturn summary (by fuel type, half-hourly).
     Flattens nested 'data' column and adds interconnector country mapping.
     """
-    url = f"https://data.elexon.co.uk/bmrs/api/v1/generation/outturn/summary?startTime={start_time}&endTime={end_time}&includeNegativeGeneration=true&format=json"
+    url = f"{BASE_ELEXON}/generation/outturn/summary?startTime={start_time}&endTime={end_time}&includeNegativeGeneration=true&format=json"
     response = req.get(url, timeout=20)
     response.raise_for_status()
     data = response.json()
