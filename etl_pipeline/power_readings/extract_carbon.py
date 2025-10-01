@@ -8,6 +8,10 @@ def get_utc_settlement_time() -> list[str]:
     """Get the settlement time in UTC."""
 
     end_time = datetime.now(timezone.utc)
+
+    # We are taking readings for every 30 minute settlement period, however
+    #  for this API, if the time window hits a value in two settlement periods,
+    #  both are returned. Hence, 29 minutes has been chosen
     start_time = (end_time - timedelta(minutes=29))
 
     return [start_time.isoformat(), end_time.isoformat()]
