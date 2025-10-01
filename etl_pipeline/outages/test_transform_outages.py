@@ -1,4 +1,3 @@
-# pylint: skip-file
 """
 Tests to make sure the functionality works correctly, so uses a sample dataset to make 
 sure everything runs without using the actual dataset and checks that all the tables
