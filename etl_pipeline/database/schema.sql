@@ -93,7 +93,7 @@ CREATE TABLE power_reading(
 CREATE TABLE carbon_reading(
     carbon_reading_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     date_time TIMESTAMP,
-    carbon_intensity float NOT NULL,
+    carbon_intensity int NOT NULL,
     region_id int NOT NULL,      
     gas float NOT NULL,
     coal float NOT NULL,
