@@ -38,7 +38,7 @@ jobs:
           cd etl_pipeline/outages
           pip install -r requirements.txt  
 
-      - name: Install power_readings requirements
+      - name: Install power readings requirements
         run: |
           cd etl_pipeline/power_readings
           pip install -r requirements.txt  
@@ -59,7 +59,7 @@ jobs:
       - name: Install testing modules
         run: pip install pytest pylint 
 
-      - name: Install dashboard dependencies 
+      - name: Install dashboard requirements 
         run: |
           cd dashboard
           pip install -r requirements.txt     
@@ -74,7 +74,7 @@ jobs:
           cd etl_pipeline/outages
           pip install -r requirements.txt  
 
-      - name: Install power_readings requirements
+      - name: Install power readings requirements
         run: |
           cd etl_pipeline/power_readings
           pip install -r requirements.txt  
