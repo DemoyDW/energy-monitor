@@ -1,65 +1,65 @@
 """
 Transform script for National Grid outage data.
-Takes the raw outage CSV extract and reshapes it into tables
-that match the ERD: outage, postcode, outage_postcode_link.
-Now ensures times are interpreted as UK local time.
+Reshapes raw CSV into: outage, postcode, outage_postcode_link.
+Parses UK local time, maps category -> id, adds status, and ensures no NaT.
 """
 
 import pandas as pd
+from datetime import datetime
 
-# Map seeded outage categories to IDs
 CATEGORY_MAP = {
-    "HV ISOLATION": 1,
-    "LV GENERIC": 2,
-    "LV OVERHEAD": 3,
-    "LV UNDERGROUND": 4,
-    "HV OVERHEAD": 5,
-    "LV ISOLATION": 6,
-    "LV FUSE": 7,
-    "HV GENERIC": 8,
-    "HV DAMAGE": 9,
-    "LV DAMAGE": 10,
-    "HV FUSE": 11,
-    "HV UNDERGROUND": 12,
-    "EHV OVERHEAD": 13,
-    "HV PLANT": 14,
+    "HV ISOLATION": 1, "LV GENERIC": 2, "LV OVERHEAD": 3, "LV UNDERGROUND": 4,
+    "HV OVERHEAD": 5, "LV ISOLATION": 6, "LV FUSE": 7, "HV GENERIC": 8,
+    "HV DAMAGE": 9, "LV DAMAGE": 10, "HV FUSE": 11, "HV UNDERGROUND": 12,
+    "EHV OVERHEAD": 13, "HV PLANT": 14,
 }
 
 
 def parse_uk_time(series: pd.Series) -> pd.Series:
-    """Parse datetimes as UK local time with DST awareness."""
     return (
         pd.to_datetime(series, errors="coerce")
         .dt.tz_localize("Europe/London", ambiguous="NaT", nonexistent="NaT")
     )
 
 
+def _to_py_dt_or_none(x):
+    if isinstance(x, pd.Timestamp):
+        return x.to_pydatetime()
+    if x is None or pd.isna(x):
+        return None
+    return x
+
+
 def build_outage_table(raw: pd.DataFrame) -> pd.DataFrame:
-    """Transform raw outage records, map categories, and tag as current/historical (UK time)."""
     outage_df = raw[["Incident ID", "Start Time", "ETR", "Category"]].copy()
     outage_df.columns = ["outage_id", "start_time", "etr", "category"]
 
-    # Parse datetimes as UK local time
     outage_df["start_time"] = parse_uk_time(outage_df["start_time"])
     outage_df["etr"] = parse_uk_time(outage_df["etr"])
 
-    # Map category to seeded IDs
     outage_df["category_id"] = outage_df["category"].map(CATEGORY_MAP)
 
-    # Tag outages as current or historical
     now_uk = pd.Timestamp.now(tz="Europe/London")
     outage_df["status"] = outage_df["etr"].apply(
         lambda x: "current" if pd.notna(x) and x >= now_uk else "historical"
     )
 
-    # Drop raw category text
     outage_df.drop(columns=["category"], inplace=True)
+
+    # force object dtype to avoid pandas coercion
+    for col in ["start_time", "etr"]:
+        outage_df[col] = outage_df[col].astype("object")
+        outage_df[col] = [_to_py_dt_or_none(x) for x in outage_df[col]]
+
+    # sanity assertions (will raise if any NaT/Timestamp remains)
+    assert all(isinstance(x, (type(None), datetime))
+               for x in outage_df["start_time"])
+    assert all(isinstance(x, (type(None), datetime)) for x in outage_df["etr"])
 
     return outage_df
 
 
 def build_postcode_table(raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Create postcode dimension and return exploded outage-postcode pairs."""
     postcodes = (
         raw[["Incident ID", "Postcodes"]]
         .dropna()
@@ -70,14 +70,10 @@ def build_postcode_table(raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]
 
     postcode_df = pd.DataFrame({"postcode": postcodes["Postcodes"].unique()})
     postcode_df["postcode_id"] = range(1, len(postcode_df) + 1)
-
     return postcode_df, postcodes
 
 
-def build_outage_postcode_link(
-    postcodes: pd.DataFrame, postcode_df: pd.DataFrame
-) -> pd.DataFrame:
-    """Create the many-to-many link between outages and postcodes."""
+def build_outage_postcode_link(postcodes: pd.DataFrame, postcode_df: pd.DataFrame) -> pd.DataFrame:
     link_df = postcodes.merge(
         postcode_df, left_on="Postcodes", right_on="postcode"
     )[["Incident ID", "postcode_id"]].rename(columns={"Incident ID": "outage_id"})
@@ -85,23 +81,20 @@ def build_outage_postcode_link(
 
 
 def transform_outages(raw: pd.DataFrame) -> dict[str, pd.DataFrame]:
-    """Master function orchestrating the smaller transforms."""
     outage_df = build_outage_table(raw)
     postcode_df, postcodes = build_postcode_table(raw)
     link_df = build_outage_postcode_link(postcodes, postcode_df)
-
-    return {
-        "outage": outage_df,
-        "postcode": postcode_df,
-        "outage_postcode_link": link_df,
-    }
+    return {"outage": outage_df, "postcode": postcode_df, "outage_postcode_link": link_df}
 
 
 if __name__ == "__main__":
-    # Quick test run with a local CSV
     raw = pd.read_csv("power_outage_ext.csv")
     tables = transform_outages(raw)
 
     for name, df in tables.items():
         print(f"\n--- {name.upper()} ({len(df)} rows) ---")
-        print(df.head())
+        print(df.head(10))
+
+    out = tables["outage"]
+    print("start_time types:", {type(x) for x in out["start_time"].head(10)})
+    print("etr types:", {type(x) for x in out["etr"].head(10)})
