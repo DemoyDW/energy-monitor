@@ -31,14 +31,3 @@ def transform_carbon_intensity_data(carbon_data: list[dict]) -> list[list]:
         transformed_data.append(l)
 
     return transformed_data
-
-
-if __name__ == "__main__":
-    time = get_utc_settlement_time()
-    region_data = extract_carbon_intensity_data(
-        time[0], time[1])
-
-    test = transform_carbon_intensity_data(region_data)[1]
-    print(test)
-    for t in test:
-        print(type(t))
