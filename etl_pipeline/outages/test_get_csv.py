@@ -10,8 +10,8 @@ import pytest
 from extract_outages_csv import generate_outage_csv
 
 
-@patch("get_csv.requests.get")
-@patch("get_csv.pd.DataFrame.to_csv")
+@patch("extract_outages_csv.requests.get")
+@patch("extract_outages_csv.DataFrame.to_csv")
 def test_generate_outage_csv_success(mock_to_csv, mock_get, tmp_path):
     """ Test to check that when given the data it can retrieve it and store it as a csv. """
     # Fake CSV text to return from requests.get
@@ -42,7 +42,7 @@ def test_generate_outage_csv_success(mock_to_csv, mock_get, tmp_path):
     assert kwargs["index"] is False
 
 
-@patch("get_csv.requests.get")
+@patch("extract_outages_csv.requests.get")
 def test_generate_outage_csv_http_error(mock_get):
     """ Test to see that if there was an error it reflects that. """
     # Simulate requests raising an HTTP error
