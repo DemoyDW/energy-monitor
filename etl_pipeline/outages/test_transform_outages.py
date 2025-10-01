@@ -1,6 +1,5 @@
-# pylint: skip-file
 """
-Tests to mkae sure the functionality works correctly, so uses a sample dataset to make 
+Tests to make sure the functionality works correctly, so uses a sample dataset to make 
 sure everything runs without using the actual dataset and checks that all the tables
 are created properly and they have the correct relations.
 """
