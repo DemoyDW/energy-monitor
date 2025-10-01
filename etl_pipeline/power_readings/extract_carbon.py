@@ -14,10 +14,10 @@ def get_utc_settlement_time() -> list[str]:
 
 
 def extract_carbon_intensity_data(start_time: str, end_time: str) -> list[dict]:
-    """Extracts the carbon intensity data from the API for a given time window."""
+    """Extracts the regional carbon intensity data from the API for a given time window."""
 
-    url = f"https://api.carbonintensity.org.uk/generation/{start_time}/{end_time}"
+    url = f"https://api.carbonintensity.org.uk/regional/intensity/{start_time}/{end_time}"
     response = get(url)
-    data = response.json()["data"][0]["generationmix"]
+    data = response.json()["data"][0]["regions"]
 
     return data
