@@ -26,7 +26,7 @@ jobs:
       - name: Install dashboard dependencies 
         run: |
           cd dashboard
-          pip install -r requirements.tx     
+          pip install -r requirements.txt     
 
       - name: Install carbon reading requirements
         run: |
@@ -67,7 +67,7 @@ jobs:
       - name: Install dashboard dependencies 
         run: |
           cd dashboard
-          pip install -r requirements.tx     
+          pip install -r requirements.txt     
 
       - name: Install carbon reading requirements
         run: |
