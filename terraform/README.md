@@ -8,7 +8,6 @@ bash
 terraform apply
 ## Requirements
 1. A terraform.tfvars as follows
-ini
 ACCESS_KEY={your_aws_key}
 SECRET_KEY={your_aws_secret_key}
 REGION={region}
