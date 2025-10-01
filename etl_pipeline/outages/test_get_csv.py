@@ -1,6 +1,6 @@
 # pylint: skip-file
 """ 
-Tests to make sure the get_csv.py file is working as intended. Used mocking to simulate the API 
+Tests to make sure the extract_outages_csv.py file is working as intended. Used mocking to simulate the API 
 request without having to directly call it.
 """
 import io
