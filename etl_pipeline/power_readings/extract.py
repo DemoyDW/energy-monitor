@@ -1,4 +1,4 @@
-"""An extract script for the power reading data."""
+"""An extract script for the power reading, pricing and demand data from the Elexon and NESO APIs."""
 
 from datetime import datetime, timedelta, timezone
 import requests as req
@@ -11,8 +11,8 @@ BASE_ELEXON = "https://data.elexon.co.uk/bmrs/api/v1"
 def get_utc_settlement_time() -> list[str]:
     """Get the previous settlement time in UTC."""
 
-    end_time = datetime.now(timezone.utc)
-    start_time = (end_time - timedelta(minutes=29))
+    end_time = datetime.now(timezone.utc) - timedelta(minutes=5)
+    start_time = (end_time - timedelta(minutes=34))
 
     return [start_time.isoformat(), end_time.isoformat()]
 
