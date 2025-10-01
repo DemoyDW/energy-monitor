@@ -1,6 +1,7 @@
 """Script with the functions to transform the carbon intensity data from the NESO API."""
 
 from extract_carbon import extract_carbon_intensity_data, get_utc_settlement_time
+from datetime import datetime
 
 
 def transform_generation_mix(region: dict) -> list[float]:
@@ -21,9 +22,10 @@ def transform_carbon_intensity_data(carbon_data: list[dict]) -> list[list]:
     transformed_data = []
 
     for region in carbon_data:
+        time = datetime.now()
         region_id = region["regionid"]
         intensity = region["intensity"]["forecast"]
-        l = [region_id, intensity]
+        l = [time, intensity, region_id]
         generation = transform_generation_mix(region)
         l.extend(generation)
         transformed_data.append(l)
