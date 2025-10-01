@@ -11,8 +11,8 @@ def calculate_avg_for_last_settlement(df: pd.DataFrame, column: str) -> float:
 
     df['startTime'] = pd.to_datetime(df['startTime'], utc=True)
 
-    end = datetime.now(timezone.utc)
-    start = end - timedelta(minutes=34)
+    end = datetime.now(timezone.utc) - timedelta(minutes=5)
+    start = end - timedelta(minutes=39)
 
     settlement = df[df['startTime'].between(start, end)]
     avg = settlement[column].mean()
@@ -96,7 +96,6 @@ def transform_all_data(time: list) -> list:
     all_data.append(average_demand)
 
     # Energy generation by country
-
     imports = get_generation_by_type(time[0].replace(
         '+00:00', 'Z'), time[1].replace('+00:00', 'Z'))
     mapped_countries = country_mappings()
@@ -105,9 +104,3 @@ def transform_all_data(time: list) -> list:
     all_data.extend(combined_countries['generation'].tolist())
 
     return all_data
-
-
-if __name__ == "__main__":
-
-    now = get_utc_settlement_time()
-    print(transform_all_data(now))
