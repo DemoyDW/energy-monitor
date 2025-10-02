@@ -16,11 +16,11 @@ def query_insert_to_power_reading() -> str:
             """
 
 
-def load_power_reading_data(con, power_data: list[list]) -> None:
+def load_power_reading_data(conn, power_data: list[list]) -> None:
     """Load the transformed carbon intensity data to the database."""
 
     query = query_insert_to_power_reading()
 
-    with con.cursor() as cur:
+    with conn.cursor() as cur:
         cur.execute(query, power_data)
-    con.commit()
+    conn.commit()
