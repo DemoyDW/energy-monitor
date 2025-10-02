@@ -10,13 +10,14 @@ Load outage data into RDS
 
 from __future__ import annotations
 
+import json
 import os
 from typing import Any, Dict, Iterable, List, Tuple
 
 import pandas as pd
 import psycopg2
 from psycopg2.extras import execute_values
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from transform_outages import transform_outages
 from extract_outages_csv import generate_outage_csv
 
@@ -27,8 +28,8 @@ def load_db_config() -> Dict[str, Any]:
     return {
         "host": os.getenv("DB_HOST"),
         "port": os.getenv("DB_PORT"),
-        "dbname": os.getenv("DB_DB"),
-        "user": os.getenv("DB_USER"),
+        "dbname": os.getenv("DB_NAME"),
+        "user": os.getenv("DB_USERNAME"),
         "password": os.getenv("DB_PASSWORD"),
     }
 
@@ -165,3 +166,51 @@ def load_to_rds(tables: Dict[str, pd.DataFrame], conn_params: Dict[str, Any]) ->
         conn.commit()
 
     return {"outage": o_count, "postcode": p_count, "outage_postcode_link": l_count}
+
+
+def orchestrate() -> Dict[str, Any]:
+    """
+    Run a full ETL cycle: extract -> transform -> load.
+    Returns a small result summary for logs/monitoring.
+    """
+
+    # Extract fresh (default: no file write in Lambda)
+    raw_df = generate_outage_csv()
+
+    # Transform
+    tables = transform_outages(raw_df)
+
+    # Load
+    cfg = load_db_config()
+    counts = load_to_rds(tables, cfg)
+
+    return {"ok": True, "counts": counts}
+
+
+def handler(event, context):
+    """
+    AWS Lambda handler.
+
+    Set the handler in AWS to: load_outages.handler
+
+    Env vars:
+      DB_HOST, DB_PORT, DB_DB, DB_USER, DB_PASSWORD
+      (optional) EXTRACT_SAVE_CSV=true  # writes CSV to /tmp for debugging
+    """
+    try:
+        # simple health check path
+        if isinstance(event, dict) and event.get("ping"):
+            return {"statusCode": 200, "body": json.dumps({"ok": True, "pong": True})}
+
+        result = orchestrate()
+        return {"statusCode": 200, "body": json.dumps(result, default=str)}
+
+    except Exception as e:
+        # CloudWatch will capture this print as an ERROR
+        print("ERROR in load_outages.handler:", repr(e))
+        return {"statusCode": 500, "body": json.dumps({"ok": False, "error": str(e)})}
+
+
+if __name__ == "__main__":
+    out = orchestrate()
+    print(json.dumps(out, indent=2))
