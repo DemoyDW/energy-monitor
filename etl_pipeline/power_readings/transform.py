@@ -11,9 +11,9 @@ def calculate_avg_for_last_settlement(df: pd.DataFrame, column: str) -> float:
 
     df['startTime'] = pd.to_datetime(df['startTime'], utc=True)
 
-    # Reading come in 5 minutes interval, we are triggering readings at 35 past
-    # We want all 6 readings in the 30 minute window, therefore 39 is chosen
-    # 5 minutes are deducted due to tbe 35 and 5 past trigger
+    # Readings come in 5-minute intervals; we are triggering readings at 5 and 35 past the hour.
+    # We want all 6 readings within the 30-minute window, so 39 minutes is chosen.
+    # 5 minutes are deducted due to the 5 and 35 past triggers.
     end = datetime.now(timezone.utc) - timedelta(minutes=5)
     start = end - timedelta(minutes=39)
 
