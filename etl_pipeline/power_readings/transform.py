@@ -6,34 +6,6 @@ import pandas as pd
 from extract import get_demand_summary, get_energy_pricing, get_generation_by_type, get_national_energy_generation
 
 
-INTERCONNECTOR_MAP = {
-    "INTELEC": "Belgium (ElecLink)",
-    "INTEW": "Ireland (East-West)",
-    "INTFR": "France (IFA)",
-    "INTIFA2": "France (IFA2)",
-    "INTIRL": "Northern Ireland (Moyle)",
-    "INTNED": "Netherlands (BritNed)",
-    "INTNEM": "Belgium (Nemo Link)",
-    "INTNSL": "Norway (North Sea Link)",
-    "INTVKL": "Denmark (Viking Link)",
-    "INTGRNL": "Ireland (Greenlink)"
-
-}
-
-COUNTRY_MAP = {
-    'Belgium (ElecLink)': 'Belgium',
-    'Belgium (Nemo Link)': 'Belgium',
-    'France (IFA)': 'France',
-    'France (IFA2)': 'France',
-    'Ireland (East-West)': 'Ireland',
-    'Ireland (Greenlink)': 'Ireland',
-    'Denmark (Viking Link)': 'Denmark',
-    'Netherlands (BritNed)': 'Netherlands',
-    'Northern Ireland (Moyle)': 'Northern Ireland',
-    'Norway (North Sea Link)': 'Norway',
-}
-
-
 def calculate_avg_for_last_settlement(df: pd.DataFrame, column: str) -> float:
     """Calculate average of a numeric column of a dataframe for the last settlement."""
 
@@ -70,8 +42,20 @@ def summarize_energy_generation(df: pd.DataFrame, mappings: dict) -> pd.DataFram
 def combine_company_generation(df: pd.DataFrame) -> pd.DataFrame:
     """Combine different parts of a country to 1 country"""
     # map to group all relevant countries in to one
+    country_map = {
+        'Belgium (ElecLink)': 'Belgium',
+        'Belgium (Nemo Link)': 'Belgium',
+        'France (IFA)': 'France',
+        'France (IFA2)': 'France',
+        'Ireland (East-West)': 'Ireland',
+        'Ireland (Greenlink)': 'Ireland',
+        'Denmark (Viking Link)': 'Denmark',
+        'Netherlands (BritNed)': 'Netherlands',
+        'Northern Ireland (Moyle)': 'Northern Ireland',
+        'Norway (North Sea Link)': 'Norway',
+    }
 
-    df['country'] = df['country'].map(COUNTRY_MAP)
+    df['country'] = df['country'].map(country_map)
 
     result = df.groupby('country', as_index=False)['generation'].sum()
 
@@ -82,6 +66,19 @@ def combine_company_generation(df: pd.DataFrame) -> pd.DataFrame:
 
 def transform_all_data(time: list) -> list:
     """Put all values in to a list ready to be inserted to database"""
+    interconnerctor_map = {
+        "INTELEC": "Belgium (ElecLink)",
+        "INTEW": "Ireland (East-West)",
+        "INTFR": "France (IFA)",
+        "INTIFA2": "France (IFA2)",
+        "INTIRL": "Northern Ireland (Moyle)",
+        "INTNED": "Netherlands (BritNed)",
+        "INTNEM": "Belgium (Nemo Link)",
+        "INTNSL": "Norway (North Sea Link)",
+        "INTVKL": "Denmark (Viking Link)",
+        "INTGRNL": "Ireland (Greenlink)"
+
+    }
 
     # We are taking reading every 30 minutes, but triggering at 35 past
     all_data = []
@@ -105,7 +102,7 @@ def transform_all_data(time: list) -> list:
     # Energy generation by country
     imports = get_generation_by_type(time[0].replace(
         '+00:00', 'Z'), time[1].replace('+00:00', 'Z'))
-    summary = summarize_energy_generation(imports, INTERCONNECTOR_MAP)
+    summary = summarize_energy_generation(imports, interconnerctor_map)
     combined_countries = combine_company_generation(summary)
     all_data.extend(combined_countries['generation'].tolist())
 
