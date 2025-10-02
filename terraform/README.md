@@ -1,6 +1,6 @@
 # Terraform Set-up
 This terraform script will set up all resources required for deploying the energy monitor Project.
-To setup initial RDS run main.tf.
+To setup initial RDS and ECRs run main.tf.
 ## Usage
 1. Run main.tf with bash
 # Inside terraform folder
