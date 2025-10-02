@@ -1,4 +1,4 @@
--- Energy monitor schema
+
 
 -- Category table
 CREATE TABLE category (
@@ -12,6 +12,7 @@ CREATE TABLE outage (
     start_time TIMESTAMP,
     etr TIMESTAMP,
     category_id int NOT NULL,
+    status VARCHAR(20) NOT NULL,
     FOREIGN KEY (category_id) REFERENCES category(category_id)
     );
 
@@ -26,10 +27,7 @@ CREATE TABLE region (
 -- Postcode table
 CREATE TABLE postcode (
     postcode_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    postcode VARCHAR(100) NOT NULL UNIQUE,
-    region_id int NOT NULL,
-    FOREIGN KEY(region_id) REFERENCES region(region_id)
-
+    postcode VARCHAR(100) NOT NULL UNIQUE
 );
 
 -- Outage postcode link table
@@ -46,7 +44,8 @@ CREATE TABLE outage_postcode_link (
 CREATE TABLE customer (
     customer_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     customer_name VARCHAR(100) NOT NULL, 
-    customer_email VARCHAR(100) NOT NULL UNIQUE
+    customer_email VARCHAR(100) NOT NULL UNIQUE,
+    summary_description VARCHAR(100) NOT NULL
 );
 
 
@@ -58,8 +57,6 @@ CREATE TABLE customer_postcode_link(
     FOREIGN KEY(customer_id) REFERENCES customer(customer_id),
     FOREIGN KEY(postcode_id) REFERENCES postcode(postcode_id)
 );
-
-
 
 
 
