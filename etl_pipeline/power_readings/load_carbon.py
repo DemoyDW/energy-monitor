@@ -3,10 +3,12 @@
 from psycopg2 import connect
 from psycopg2.extras import execute_values
 from os import environ as ENV
+from dotenv import load_dotenv
 
 
 def get_db_connection():
     """Connect to the postgres database managed by RDS."""
+    load_dotenv()
 
     return connect(database=ENV["DB_NAME"],
                    user=ENV["DB_USERNAME"],
