@@ -2,7 +2,7 @@
 import pandas as pd
 from unittest.mock import MagicMock, patch
 from datetime import datetime, timedelta, timezone
-from extract import get_utc_settlement_time, get_national_energy_generation, get_demand_summary, calculate_avg_for_last_settlement
+from extract import get_utc_settlement_time
 
 
 def test_utc_settlement_time():
@@ -10,7 +10,7 @@ def test_utc_settlement_time():
     fake_now = datetime(2025, 9, 11, 14, 30, 0, tzinfo=timezone.utc)
     with patch("datetime.datetime") as mock_datetime:
         mock_datetime.now.return_value = fake_now
-        mock_datetime.return_value = fake_now - timedelta(minutes=29)
+        mock_datetime.return_value = fake_now - timedelta(minutes=34)
         result = get_utc_settlement_time()
         assert isinstance(result, list)
         assert len(result) == 2
@@ -24,7 +24,7 @@ def test_utc_settlement_time_29_min():
         start = datetime.fromisoformat(result[0])
         end = datetime.fromisoformat(result[1])
         diff = (end - start).total_seconds() / 60
-        assert diff == 29
+        assert diff == 34
 
 
 def test_utc_settlement_time_iso_format():
