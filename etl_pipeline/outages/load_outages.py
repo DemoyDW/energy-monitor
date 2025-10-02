@@ -9,12 +9,7 @@ Flow
    - UPSERT outage
    - INSERT postcode (ON CONFLICT DO NOTHING)
    - Stage (outage_id, postcode) in TEMP table and INSERT links via JOIN
-   - Mark 'gone from feed' outages as historical
-
-Env vars (local or Lambda)
---------------------------
-DB_HOST, DB_PORT, DB_DB, DB_USER, DB_PASSWORD
-(optional) EXTRACT_SAVE_CSV=true  # not used here; extractor saves by default
+   - Mark 'gone from feed' outages as historical (guarded if feed empty)
 
 Lambda handler: load_outages.handler
 """
@@ -22,57 +17,31 @@ Lambda handler: load_outages.handler
 from __future__ import annotations
 
 import json
-import os
+from os import environ as ENV
 from typing import Any, Dict, Iterable, List, Tuple
 
 import pandas as pd
-import psycopg2
+from psycopg2 import connect
 from psycopg2.extras import execute_values
-from dotenv import load_dotenv, find_dotenv
+from dotenv import load_dotenv
 
 from transform_outages import transform_outages
 from extract_outages_csv import generate_outage_csv
 
 
-# ----------------------------
-# Configuration / Env
-# ----------------------------
+def get_db_connection():
+    """Connect to the Postgres database on RDS using env vars."""
+    load_dotenv()
 
-def load_db_config() -> Dict[str, Any]:
-    """
-    Load DB config from environment/.env and validate it.
-    Adds sslmode=require for RDS.
-    """
-    env_path = find_dotenv(usecwd=True)
-    if env_path:
-        print(f"Loading .env from: {env_path}")
-        load_dotenv(env_path)
-    else:
-        load_dotenv()
+    return connect(
+        dbname=ENV["DB_NAME"],
+        user=ENV["DB_USERNAME"],
+        password=ENV["DB_PASSWORD"],
+        host=ENV["DB_HOST"],
+        port=ENV["DB_PORT"],
+        sslmode=ENV.get("DB_SSLMODE", "require"),  # RDS defaults
+    )
 
-    cfg = {
-        "host": os.getenv("DB_HOST"),
-        "port": os.getenv("DB_PORT") or "5432",
-        "dbname": os.getenv("DB_NAME") or os.getenv("DB_NAME"),
-        "user": os.getenv("DB_USERNAME") or os.getenv("PGUSER"),
-        "password": os.getenv("DB_PASSWORD"),
-        "sslmode": "require",
-    }
-
-    missing = [k for k in ("host", "dbname", "user",
-                           "password") if not cfg.get(k)]
-    if missing:
-        redacted = {**cfg, "password": "***" if cfg.get("password") else None}
-        raise RuntimeError(
-            f"Missing required DB env vars: {missing}. "
-            f"Loaded (redacted): {redacted}"
-        )
-    return cfg
-
-
-# ----------------------------
-# SQL helpers
-# ----------------------------
 
 def sql_upsert_outage() -> str:
     return """
@@ -107,8 +76,6 @@ def sql_insert_links_from_tmp() -> str:
     ON CONFLICT DO NOTHING;
     """
 
-# 'gone from feed' helpers
-
 
 def sql_create_tmp_current_ids() -> str:
     return "CREATE TEMP TABLE tmp_current_ids(outage_id varchar(50)) ON COMMIT DROP;"
@@ -127,14 +94,13 @@ def sql_mark_gone_historical() -> str:
 
 def to_python(obj: Any) -> Any:
     """
-    Coerce pandas/NumPy scalars into Python-native types psycopg2 understands:
+    Coerce pandas scalars into Python-native types psycopg2 understands:
       - pandas.Timestamp -> datetime.datetime (tz-aware)
       - pandas.NaT/NaN   -> None
       - everything else  -> unchanged
     """
     if isinstance(obj, pd.Timestamp):
         return obj.to_pydatetime()
-
     if obj is None or (not isinstance(obj, str) and pd.isna(obj)):
         return None
     return obj
@@ -182,26 +148,24 @@ def prepare_rows_and_pairs(tables: Dict[str, pd.DataFrame]) -> Dict[str, List[Tu
     return {"outages": outages, "postcodes": postcodes, "pairs": pairs}
 
 
-def load_to_rds(tables: Dict[str, pd.DataFrame], conn_params: Dict[str, Any]) -> Dict[str, int]:
+def load_to_rds(tables: Dict[str, pd.DataFrame]) -> Dict[str, int]:
     """
     Load outage-related tables into RDS inside a single transaction.
 
     Steps:
-      0 - Stage current outage_ids in TEMP table
-      1 - UPSERT outage
-      2 - Mark previously-current but not-in-this-run as historical
-      3 - INSERT postcode (ignore duplicates)
-      4 - Stage (outage_id, postcode) in TEMP and INSERT links via JOIN
+      0) Stage current outage_ids in TEMP table
+      1) UPSERT outage
+      2) Mark previously-current but not-in-this-run as historical (only if we staged any IDs)
+      3) INSERT postcode (ignore duplicates)
+      4) Stage (outage_id, postcode) in TEMP and INSERT links via JOIN
 
     Returns counts of attempted rows for logging.
     """
     prepared = prepare_rows_and_pairs(tables)
-
-    # For step (0) + (2)
     current_ids = [(row[0],)
                    for row in prepared["outages"]]  # outage_id is first item
 
-    with psycopg2.connect(**conn_params) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cur:
             # 0) Stage current IDs from this run
             cur.execute(sql_create_tmp_current_ids())
@@ -215,8 +179,13 @@ def load_to_rds(tables: Dict[str, pd.DataFrame], conn_params: Dict[str, Any]) ->
                 execute_values(cur, sql_upsert_outage(), prepared["outages"])
                 o_count = len(prepared["outages"])
 
-            # 2) Flip 'gone from feed' rows to historical
-            cur.execute(sql_mark_gone_historical())
+            # 2) Flip 'gone from feed' rows to historical — only if we had any IDs this run
+            if current_ids:
+                cur.execute(sql_mark_gone_historical())
+            else:
+                # Optional: raise to avoid accidental mass flip if feed is empty
+                # raise RuntimeError("Empty outage feed detected; aborting to avoid mass flip.")
+                pass
 
             # 3) Insert postcodes
             p_count = 0
@@ -243,16 +212,9 @@ def orchestrate() -> Dict[str, Any]:
     """
     Run a full ETL cycle: extract -> transform -> load.
     """
-    # Extract fresh (your extractor saves to disk by default; it also returns a DataFrame)
-    raw_df = generate_outage_csv()
-
-    # Transform
-    tables = transform_outages(raw_df)
-
-    # Load
-    cfg = load_db_config()
-    counts = load_to_rds(tables, cfg)
-
+    raw_df = generate_outage_csv()  # Extract fresh
+    tables = transform_outages(raw_df)  # Transform
+    counts = load_to_rds(tables)  # Load (uses get_db_connection())
     return {"ok": True, "counts": counts}
 
 
