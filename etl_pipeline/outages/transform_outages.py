@@ -8,15 +8,6 @@ import pandas as pd
 from datetime import datetime
 
 
-""" This maps the categories to the correct ID so there is no confusion when loaded to postrgres. """
-CATEGORY_MAP = {
-    "HV ISOLATION": 1, "LV GENERIC": 2, "LV OVERHEAD": 3, "LV UNDERGROUND": 4,
-    "HV OVERHEAD": 5, "LV ISOLATION": 6, "LV FUSE": 7, "HV GENERIC": 8,
-    "HV DAMAGE": 9, "LV DAMAGE": 10, "HV FUSE": 11, "HV UNDERGROUND": 12,
-    "EHV OVERHEAD": 13, "HV PLANT": 14,
-}
-
-
 def parse_uk_time(series: pd.Series) -> pd.Series:
     """ Parses the datetimes in pandas as UK local time. """
     return (
@@ -36,6 +27,13 @@ def _to_py_dt_or_none(x):
 
 def build_outage_table(raw: pd.DataFrame) -> pd.DataFrame:
     """ Transform the raw CSV into the `outage` fact table. """
+
+    CATEGORY_MAP = {
+        "HV ISOLATION": 1, "LV GENERIC": 2, "LV OVERHEAD": 3, "LV UNDERGROUND": 4,
+        "HV OVERHEAD": 5, "LV ISOLATION": 6, "LV FUSE": 7, "HV GENERIC": 8,
+        "HV DAMAGE": 9, "LV DAMAGE": 10, "HV FUSE": 11, "HV UNDERGROUND": 12,
+        "EHV OVERHEAD": 13, "HV PLANT": 14,
+    }
 
     outage_df = raw[["Incident ID", "Start Time", "ETR", "Category"]].copy()
     outage_df.columns = ["outage_id", "start_time", "etr", "category"]
