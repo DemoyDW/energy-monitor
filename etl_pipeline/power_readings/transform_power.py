@@ -6,8 +6,8 @@ import pandas as pd
 from extract_power import get_demand_summary, get_energy_pricing, get_generation_by_type, get_national_energy_generation
 
 
-def calculate_avg_for_last_settlement(df: pd.DataFrame, column: str) -> float:
-    """Calculate average of a numeric column of a dataframe for the last settlement."""
+def calculate_avg_demand_last_settlement(df: pd.DataFrame) -> float:
+    """Calculate average demand for the last settlement."""
 
     df['startTime'] = pd.to_datetime(df['startTime'], utc=True)
 
@@ -18,7 +18,7 @@ def calculate_avg_for_last_settlement(df: pd.DataFrame, column: str) -> float:
     start = end - timedelta(minutes=39)
 
     settlement = df[df['startTime'].between(start, end)]
-    avg = settlement[column].mean()
+    avg = settlement["demand"].mean().round(2)
 
     return avg
 
@@ -56,7 +56,7 @@ def summarise_energy_generation(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def transform_power_data(time: list) -> list:
+def transform_power_data(start_time, end_time) -> list:
     """Put all power, pricing and demand values in to a list ready to be inserted to the database."""
 
     transformed_data = []
@@ -67,22 +67,20 @@ def transform_power_data(time: list) -> list:
     transformed_data.append(settlement_time)
 
     # National energy generation
-    national_generation = get_national_energy_generation(time[0], time[1])
+    national_generation = get_national_energy_generation(start_time, end_time)
     transformed_data.extend(national_generation['perc'].tolist())
 
     # Energy price
-    pricing = get_energy_pricing(time[0], time[1])
+    pricing = get_energy_pricing(start_time, end_time)
     transformed_data.extend(pricing.head(1))
 
     # Average demand within past settlement
     demand_summary = get_demand_summary()
-    average_demand = round(float(calculate_avg_for_last_settlement(
-        demand_summary, "demand")), 2)
+    average_demand = calculate_avg_demand_last_settlement(demand_summary)
     transformed_data.append(average_demand)
 
     # Energy generation by country
-    imports = get_generation_by_type(time[0].replace(
-        '+00:00', 'Z'), time[1].replace('+00:00', 'Z'))
+    imports = get_generation_by_type(start_time, end_time)
     summary = summarise_energy_generation(imports)
     transformed_data.extend(summary['generation'].tolist())
 

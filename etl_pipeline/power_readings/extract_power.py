@@ -61,6 +61,11 @@ def get_generation_by_type(start_time: str, end_time: str) -> pd.DataFrame:
     Fetch generation outturn summary (by fuel type, half-hourly).
     Flattens nested 'data' column and adds interconnector country mapping.
     """
+
+    # Necessary string transformation for this API endpoint to work
+    start_time = start_time.replace('+00:00', 'Z'),
+    end_time = end_time.replace('+00:00', 'Z')
+
     url = f"{BASE_ELEXON}/generation/outturn/summary?startTime={start_time}&endTime={end_time}&includeNegativeGeneration=true&format=json"
     response = get(url, timeout=20)
     response.raise_for_status()
@@ -73,4 +78,5 @@ def get_generation_by_type(start_time: str, end_time: str) -> pd.DataFrame:
         records = data
 
     df = pd.DataFrame(records)
+
     return df

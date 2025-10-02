@@ -3,10 +3,10 @@ Tests for transform script of power readings
 """
 from datetime import datetime, timedelta, timezone
 import pandas as pd
-from transform_power import calculate_avg_for_last_settlement, summarise_energy_generation
+from transform_power import calculate_avg_demand_last_settlement, summarise_energy_generation
 
 
-def test_calc_avg_settlement():
+def test_calc_avg_demand_last_settlement():
     now = datetime.now(timezone.utc) - timedelta(minutes=5)
 
     times = [now - timedelta(minutes=i * 5) for i in range(6)]
@@ -16,7 +16,7 @@ def test_calc_avg_settlement():
         'demand': values
     })
 
-    avg = calculate_avg_for_last_settlement(df, 'demand')
+    avg = calculate_avg_demand_last_settlement(df)
 
     assert round(avg, 2) == 558.33
 
