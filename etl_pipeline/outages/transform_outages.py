@@ -95,16 +95,3 @@ def transform_outages(raw: pd.DataFrame) -> dict[str, pd.DataFrame]:
     postcode_df, postcodes = build_postcode_table(raw)
     link_df = build_outage_postcode_link(postcodes, postcode_df)
     return {"outage": outage_df, "postcode": postcode_df, "outage_postcode_link": link_df}
-
-
-if __name__ == "__main__":
-    raw = pd.read_csv("power_outage_ext.csv")
-    tables = transform_outages(raw)
-
-    for name, df in tables.items():
-        print(f"\n--- {name.upper()} ({len(df)} rows) ---")
-        print(df.head(10))
-
-    out = tables["outage"]
-    print("start_time types:", {type(x) for x in out["start_time"].head(10)})
-    print("etr types:", {type(x) for x in out["etr"].head(10)})
