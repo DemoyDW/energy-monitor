@@ -16,7 +16,7 @@ def get_db_connection():
                    port=ENV["DB_PORT"])
 
 
-def query_insert_to_power_reading():
+def query_insert_to_power_reading() -> str:
     """SQL query for inserting power, import, price and demand data into power_readings table"""
     return """
             INSERT INTO power_reading
