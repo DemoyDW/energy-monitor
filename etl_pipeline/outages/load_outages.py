@@ -72,7 +72,7 @@ def to_python(obj: Any) -> Any:
     Coerce pandas/NumPy scalars into Python-native objects psycopg2 understands.
     - pandas.Timestamp to datetime.datetime (tz-aware)
     - pandas.NaT/NaN to None
-    - everything else to unchanged
+    - everything else  -> unchanged
     """
     if isinstance(obj, pd.Timestamp):
         return obj.to_pydatetime()
