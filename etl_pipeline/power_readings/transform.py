@@ -3,7 +3,7 @@ Transform script to modify extracted data and prepare for database insertion
 """
 from datetime import datetime, timedelta, timezone
 import pandas as pd
-from extract import get_utc_settlement_time, get_demand_summary, get_energy_pricing, get_generation_by_type, get_national_energy_generation
+from extract import get_demand_summary, get_energy_pricing, get_generation_by_type, get_national_energy_generation
 
 
 INTERCONNECTOR_MAP = {
@@ -50,7 +50,7 @@ def calculate_avg_for_last_settlement(df: pd.DataFrame, column: str) -> float:
     return avg
 
 
-def summarize_energy_generation(df: pd.DataFrame, mappings: dict) -> dict:
+def summarize_energy_generation(df: pd.DataFrame, mappings: dict) -> pd.DataFrame:
     """Summarises import and export of the last settlement"""
 
     # Expand nested fuelType/generation list
