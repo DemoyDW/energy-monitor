@@ -68,5 +68,4 @@ def get_generation_by_type(start_time: str, end_time: str) -> pd.DataFrame:
         records = data
 
     df = pd.DataFrame(records)
-
     return df
