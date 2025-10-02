@@ -1,19 +1,6 @@
 """Script with the functions to load the carbon intensity data from the ELEXON API into the database."""
 
-from psycopg2 import connect
 from os import environ as ENV
-from dotenv import load_dotenv
-
-
-def get_db_connection():
-    """Connect to the postgres database managed by RDS."""
-    load_dotenv()
-
-    return connect(database=ENV["DB_NAME"],
-                   user=ENV["DB_USERNAME"],
-                   password=ENV["DB_PASSWORD"],
-                   host=ENV["DB_HOST"],
-                   port=ENV["DB_PORT"])
 
 
 def query_insert_to_power_reading() -> str:

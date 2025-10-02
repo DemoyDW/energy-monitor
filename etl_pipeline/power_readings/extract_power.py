@@ -11,6 +11,11 @@ BASE_ELEXON = "https://data.elexon.co.uk/bmrs/api/v1"
 def get_utc_settlement_time() -> list[str]:
     """Get the previous settlement time in UTC."""
 
+    # We are taking readings for every 30 minute settlement period,
+    # 5 minutes after the period has passed (why we subtract 5 minutes from end time).
+    # For both APIs, if the time window hits a value in two settlement periods,
+    # i.e. window encompasses 11:30-12:00, then both are returned.
+    # Hence, 34 minutes has been chosen instead of 35.
     end_time = datetime.now(timezone.utc) - timedelta(minutes=5)
     start_time = (end_time - timedelta(minutes=34))
 

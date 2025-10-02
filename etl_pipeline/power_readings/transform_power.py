@@ -19,11 +19,25 @@ def calculate_avg_for_last_settlement(df: pd.DataFrame, column: str) -> float:
 
     settlement = df[df['startTime'].between(start, end)]
     avg = settlement[column].mean()
+
     return avg
 
 
-def summarize_energy_generation(df: pd.DataFrame, mappings: dict) -> pd.DataFrame:
-    """Summarises import and export of the last settlement"""
+def summarise_energy_generation(df: pd.DataFrame) -> pd.DataFrame:
+    """Summarises import and export of the previous settlement."""
+
+    country_map = {
+        "INTELEC": "Belgium",
+        "INTEW": "Ireland",
+        "INTFR": "France",
+        "INTIFA2": "France",
+        "INTIRL": "Northern Ireland",
+        "INTNED": "Netherlands",
+        "INTNEM": "Belgium",
+        "INTNSL": "Norway",
+        "INTVKL": "Denmark",
+        "INTGRNL": "Ireland"
+    }
 
     # Expand nested fuelType/generation list
     df = df.explode("data", ignore_index=True)
@@ -31,54 +45,19 @@ def summarize_energy_generation(df: pd.DataFrame, mappings: dict) -> pd.DataFram
                    df["data"].apply(pd.Series)], axis=1)
 
     # Add country column for interconnectors
-    df["country"] = df["fuelType"].map(mappings)
+    df["country"] = df["fuelType"].map(country_map)
 
+    # This will remove local readings and leave only imports
+    # as only imports are included in the mapping
     df = df.dropna()
-    df = df.groupby('country')['generation'].mean().reset_index()
+
+    df = df.groupby('country')['generation'].mean().round(2).reset_index()
 
     return df
 
 
-def combine_company_generation(df: pd.DataFrame) -> pd.DataFrame:
-    """Combine different parts of a country to 1 country"""
-    # map to group all relevant countries in to one
-    country_map = {
-        'Belgium (ElecLink)': 'Belgium',
-        'Belgium (Nemo Link)': 'Belgium',
-        'France (IFA)': 'France',
-        'France (IFA2)': 'France',
-        'Ireland (East-West)': 'Ireland',
-        'Ireland (Greenlink)': 'Ireland',
-        'Denmark (Viking Link)': 'Denmark',
-        'Netherlands (BritNed)': 'Netherlands',
-        'Northern Ireland (Moyle)': 'Northern Ireland',
-        'Norway (North Sea Link)': 'Norway',
-    }
-
-    df['country'] = df['country'].map(country_map)
-
-    result = df.groupby('country', as_index=False)['generation'].sum()
-
-    result['generation'] = result['generation'].round(2)
-
-    return result
-
-
 def transform_all_data(time: list) -> list:
-    """Put all values in to a list ready to be inserted to database"""
-    interconnerctor_map = {
-        "INTELEC": "Belgium (ElecLink)",
-        "INTEW": "Ireland (East-West)",
-        "INTFR": "France (IFA)",
-        "INTIFA2": "France (IFA2)",
-        "INTIRL": "Northern Ireland (Moyle)",
-        "INTNED": "Netherlands (BritNed)",
-        "INTNEM": "Belgium (Nemo Link)",
-        "INTNSL": "Norway (North Sea Link)",
-        "INTVKL": "Denmark (Viking Link)",
-        "INTGRNL": "Ireland (Greenlink)"
-
-    }
+    """Put all values in to a list ready to be inserted to database."""
 
     # We are taking reading every 30 minutes, but triggering at 35 past
     all_data = []
@@ -102,8 +81,7 @@ def transform_all_data(time: list) -> list:
     # Energy generation by country
     imports = get_generation_by_type(time[0].replace(
         '+00:00', 'Z'), time[1].replace('+00:00', 'Z'))
-    summary = summarize_energy_generation(imports, interconnerctor_map)
-    combined_countries = combine_company_generation(summary)
-    all_data.extend(combined_countries['generation'].tolist())
+    summary = summarise_energy_generation(imports)
+    all_data.extend(summary['generation'].tolist())
 
     return all_data
