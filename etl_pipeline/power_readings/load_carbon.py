@@ -36,6 +36,6 @@ def load_carbon_intensity_data(conn, carbon_data: list[list]) -> None:
 
     query = sql_insert_carbon_reading()
 
-    with conn.cursor as cur:
+    with conn.cursor() as cur:
         execute_values(cur, query, carbon_data)
         conn.commit()
