@@ -67,24 +67,24 @@ CREATE TABLE customer_postcode_link(
 CREATE TABLE power_reading(
     power_reading_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     date_time TIMESTAMP,    
-    gas float NOT NULL,
-    coal float NOT NULL,
     biomass float NOT NULL,
-    nuclear float NOT NULL,
-    hydro float NOT NULL,
+    coal float NOT NULL,
     imports float NOT NULL,
+    gas float NOT NULL,
+    nuclear float NOT NULL,
     other float NOT NULL,
-    wind float NOT NULL,
+    hydro float NOT NULL,
     solar float NOT NULL,
+    wind float NOT NULL,
     price float NOT NULL,
-    demand int NOT NULL,
-    belgium int NOT NULL,
-    france int NOT NULL,
-    netherlands int NOT NULL,
-    denmark int NOT NULL,
-    norway int NOT NULL,
-    ireland int NOT NULL,
-    n_ireland int NOT NULL
+    demand float NOT NULL,
+    belgium float NOT NULL,
+    denmark float NOT NULL,
+    france float NOT NULL,
+    ireland float NOT NULL,
+    netherlands float NOT NULL,
+    n_ireland float NOT NULL,
+    norway float NOT NULL
     );
 
 

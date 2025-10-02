@@ -6,34 +6,48 @@ import pandas as pd
 from extract import get_utc_settlement_time, get_demand_summary, get_energy_pricing, get_generation_by_type, get_national_energy_generation
 
 
+INTERCONNECTOR_MAP = {
+    "INTELEC": "Belgium (ElecLink)",
+    "INTEW": "Ireland (East-West)",
+    "INTFR": "France (IFA)",
+    "INTIFA2": "France (IFA2)",
+    "INTIRL": "Northern Ireland (Moyle)",
+    "INTNED": "Netherlands (BritNed)",
+    "INTNEM": "Belgium (Nemo Link)",
+    "INTNSL": "Norway (North Sea Link)",
+    "INTVKL": "Denmark (Viking Link)",
+    "INTGRNL": "Ireland (Greenlink)"
+
+}
+
+COUNTRY_MAP = {
+    'Belgium (ElecLink)': 'Belgium',
+    'Belgium (Nemo Link)': 'Belgium',
+    'France (IFA)': 'France',
+    'France (IFA2)': 'France',
+    'Ireland (East-West)': 'Ireland',
+    'Ireland (Greenlink)': 'Ireland',
+    'Denmark (Viking Link)': 'Denmark',
+    'Netherlands (BritNed)': 'Netherlands',
+    'Northern Ireland (Moyle)': 'Northern Ireland',
+    'Norway (North Sea Link)': 'Norway',
+}
+
+
 def calculate_avg_for_last_settlement(df: pd.DataFrame, column: str) -> float:
     """Calculate average of a numeric column of a dataframe for the last settlement."""
 
     df['startTime'] = pd.to_datetime(df['startTime'], utc=True)
 
+    # Readings come in 5-minute intervals; we are triggering readings at 5 and 35 past the hour.
+    # We want all 6 readings within the 30-minute window, so 39 minutes is chosen.
+    # 5 minutes are deducted due to the 5 and 35 past triggers.
     end = datetime.now(timezone.utc) - timedelta(minutes=5)
     start = end - timedelta(minutes=39)
 
     settlement = df[df['startTime'].between(start, end)]
     avg = settlement[column].mean()
     return avg
-
-
-def country_mappings() -> dict:
-    """Map acronym to correct country for energy generation"""
-    interconnector_map = {
-        "INTELEC": "Belgium (ElecLink)",
-        "INTEW": "Ireland (East-West)",
-        "INTFR": "France (IFA)",
-        "INTIFA2": "France (IFA2)",
-        "INTIRL": "Northern Ireland (Moyle)",
-        "INTNED": "Netherlands (BritNed)",
-        "INTNEM": "Belgium (Nemo Link)",
-        "INTNSL": "Norway (North Sea Link)",
-        "INTVKL": "Denmark (Viking Link)",
-        "INTGRNL": "Ireland (Greenlink)"
-    }
-    return interconnector_map
 
 
 def summarize_energy_generation(df: pd.DataFrame, mappings: dict) -> dict:
@@ -55,22 +69,13 @@ def summarize_energy_generation(df: pd.DataFrame, mappings: dict) -> dict:
 
 def combine_company_generation(df: pd.DataFrame) -> pd.DataFrame:
     """Combine different parts of a country to 1 country"""
-    country_map = {
-        'Belgium (ElecLink)': 'Belgium',
-        'Belgium (Nemo Link)': 'Belgium',
-        'France (IFA)': 'France',
-        'France (IFA2)': 'France',
-        'Ireland (East-West)': 'Ireland',
-        'Ireland (Greenlink)': 'Ireland',
-        'Denmark (Viking Link)': 'Denmark',
-        'Netherlands (BritNed)': 'Netherlands',
-        'Northern Ireland (Moyle)': 'Northern Ireland',
-        'Norway (North Sea Link)': 'Norway',
-    }
+    # map to group all relevant countries in to one
 
-    df['country'] = df['country'].map(country_map)
+    df['country'] = df['country'].map(COUNTRY_MAP)
 
     result = df.groupby('country', as_index=False)['generation'].sum()
+
+    result['generation'] = result['generation'].round(2)
 
     return result
 
@@ -78,8 +83,10 @@ def combine_company_generation(df: pd.DataFrame) -> pd.DataFrame:
 def transform_all_data(time: list) -> list:
     """Put all values in to a list ready to be inserted to database"""
 
+    # We are taking reading every 30 minutes, but triggering at 35 past
     all_data = []
-    all_data.append(time[0])
+    current_time = datetime.now() - timedelta(minutes=5)
+    all_data.append(current_time.isoformat())
 
     # National energy generation
     national_generation = get_national_energy_generation(time[0], time[1])
@@ -98,8 +105,7 @@ def transform_all_data(time: list) -> list:
     # Energy generation by country
     imports = get_generation_by_type(time[0].replace(
         '+00:00', 'Z'), time[1].replace('+00:00', 'Z'))
-    mapped_countries = country_mappings()
-    summary = summarize_energy_generation(imports, mapped_countries)
+    summary = summarize_energy_generation(imports, INTERCONNECTOR_MAP)
     combined_countries = combine_company_generation(summary)
     all_data.extend(combined_countries['generation'].tolist())
 
