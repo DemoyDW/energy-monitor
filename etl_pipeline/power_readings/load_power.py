@@ -17,7 +17,7 @@ def get_db_connection():
 
 
 def query_insert_to_power_reading():
-    """SQL query for inserting ELEXON API data to power_readings table"""
+    """SQL query for inserting power, import, price and demand data into power_readings table"""
     return """
             INSERT INTO power_reading
                 (date_time, biomass, coal,
