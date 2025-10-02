@@ -6,11 +6,11 @@ CREATE TABLE category (
 
 -- Outage table
 CREATE TABLE outage (
-    outage_id VARCHAR(50) PRIMARY KEY,          -- store National Grid IDs directly
+    outage_id VARCHAR(50) PRIMARY KEY,        
     start_time TIMESTAMPTZ,
     etr TIMESTAMPTZ,
     category_id INT NOT NULL,
-    status VARCHAR(20) NOT NULL,                -- current/historical
+    status VARCHAR(20) NOT NULL,                
     FOREIGN KEY (category_id) REFERENCES category(category_id)
 );
 
@@ -18,15 +18,13 @@ CREATE TABLE outage (
 CREATE TABLE postcode (
     postcode_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     postcode VARCHAR(20) NOT NULL UNIQUE
-    -- region_id INT,  -- could add later if you enrich with region data
-    -- FOREIGN KEY(region_id) REFERENCES region(region_id)
 );
 
 -- Outage ↔ Postcode link table
 CREATE TABLE outage_postcode_link (
     outage_id VARCHAR(50) NOT NULL,
     postcode_id INT NOT NULL,
-    PRIMARY KEY (outage_id, postcode_id),       -- composite PK to avoid duplicates
+    PRIMARY KEY (outage_id, postcode_id),       
     FOREIGN KEY(outage_id) REFERENCES outage(outage_id),
     FOREIGN KEY(postcode_id) REFERENCES postcode(postcode_id)
 );

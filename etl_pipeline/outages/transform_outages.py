@@ -7,6 +7,8 @@ Parses UK local time, maps category -> id, adds status, and ensures no NaT.
 import pandas as pd
 from datetime import datetime
 
+
+""" This maps the categories to the correct ID so there is no confusion when loaded to postrgres. """
 CATEGORY_MAP = {
     "HV ISOLATION": 1, "LV GENERIC": 2, "LV OVERHEAD": 3, "LV UNDERGROUND": 4,
     "HV OVERHEAD": 5, "LV ISOLATION": 6, "LV FUSE": 7, "HV GENERIC": 8,
@@ -16,6 +18,7 @@ CATEGORY_MAP = {
 
 
 def parse_uk_time(series: pd.Series) -> pd.Series:
+    """ Parses the datetimes in pandas as UK local time. """
     return (
         pd.to_datetime(series, errors="coerce")
         .dt.tz_localize("Europe/London", ambiguous="NaT", nonexistent="NaT")
@@ -23,6 +26,7 @@ def parse_uk_time(series: pd.Series) -> pd.Series:
 
 
 def _to_py_dt_or_none(x):
+    """ Converts value to a datetime with tzinfo or None. """
     if isinstance(x, pd.Timestamp):
         return x.to_pydatetime()
     if x is None or pd.isna(x):
@@ -31,6 +35,8 @@ def _to_py_dt_or_none(x):
 
 
 def build_outage_table(raw: pd.DataFrame) -> pd.DataFrame:
+    """ Transform the raw CSV into the `outage` fact table. """
+
     outage_df = raw[["Incident ID", "Start Time", "ETR", "Category"]].copy()
     outage_df.columns = ["outage_id", "start_time", "etr", "category"]
 
@@ -60,6 +66,8 @@ def build_outage_table(raw: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_postcode_table(raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """ Create the postcode dimension and an exploded intermediary. """
+
     postcodes = (
         raw[["Incident ID", "Postcodes"]]
         .dropna()
@@ -74,6 +82,8 @@ def build_postcode_table(raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]
 
 
 def build_outage_postcode_link(postcodes: pd.DataFrame, postcode_df: pd.DataFrame) -> pd.DataFrame:
+    """ Create the `outage_postcode_link` table (using temporary postcode_ids). """
+
     link_df = postcodes.merge(
         postcode_df, left_on="Postcodes", right_on="postcode"
     )[["Incident ID", "postcode_id"]].rename(columns={"Incident ID": "outage_id"})
@@ -81,6 +91,8 @@ def build_outage_postcode_link(postcodes: pd.DataFrame, postcode_df: pd.DataFram
 
 
 def transform_outages(raw: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    """ Orchestrate transforms and return all three tables. """
+
     outage_df = build_outage_table(raw)
     postcode_df, postcodes = build_postcode_table(raw)
     link_df = build_outage_postcode_link(postcodes, postcode_df)

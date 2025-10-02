@@ -70,9 +70,9 @@ def sql_insert_links_from_tmp() -> str:
 def to_python(obj: Any) -> Any:
     """
     Coerce pandas/NumPy scalars into Python-native objects psycopg2 understands.
-    - pandas.Timestamp -> datetime.datetime (tz-aware)
-    - pandas.NaT/NaN   -> None
-    - everything else  -> unchanged
+    - pandas.Timestamp to datetime.datetime (tz-aware)
+    - pandas.NaT/NaN to None
+    - everything else to unchanged
     """
     if isinstance(obj, pd.Timestamp):
         return obj.to_pydatetime()
@@ -97,9 +97,9 @@ def df_to_tuples(df: pd.DataFrame, columns: Iterable[str] | None = None) -> List
 def prepare_rows_and_pairs(tables: Dict[str, pd.DataFrame]) -> Dict[str, List[Tuple]]:
     """
     Prepare:
-      - outages:   list of tuples (outage_id, start_time, etr, category_id, status)
+      - outages: list of tuples (outage_id, start_time, etr, category_id, status)
       - postcodes: list of tuples (postcode,)
-      - pairs:     list of tuples (outage_id, postcode)  <-- used for TEMP table
+      - pairs: list of tuples (outage_id, postcode) 
     """
     outage_df = tables["outage"]
     postcode_df = tables["postcode"]
@@ -165,17 +165,3 @@ def load_to_rds(tables: Dict[str, pd.DataFrame], conn_params: Dict[str, Any]) ->
         conn.commit()
 
     return {"outage": o_count, "postcode": p_count, "outage_postcode_link": l_count}
-
-
-if __name__ == "__main__":
-
-    raw = generate_outage_csv()  # returns a DataFrame (and can save CSV)
-
-    tables = transform_outages(raw)
-
-    cfg = load_db_config()
-    result = load_to_rds(tables, cfg)
-
-    print("Load complete:")
-    for tbl, n in result.items():
-        print(f"  - {tbl}: {n} rows attempted")
