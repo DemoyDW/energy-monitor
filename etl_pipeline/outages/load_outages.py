@@ -1,11 +1,22 @@
 """
-Load outage data into RDS
+Load outage data into RDS.
 
-- Reads DB creds from .env (DB_HOST, DB_PORT, DB_DB, DB_USER, DB_PASSWORD)
-- Upserts `outage`
-- Inserts `postcode` (ignore duplicates)
-- Inserts `outage_postcode_link` by staging (outage_id, postcode) into a TEMP table
-  and resolving postcode_id
+Flow
+----
+1) Extract fresh CSV -> DataFrame (generate_outage_csv)
+2) Transform -> outage, postcode, outage_postcode_link (transform_outages)
+3) Load:
+   - UPSERT outage
+   - INSERT postcode (ON CONFLICT DO NOTHING)
+   - Stage (outage_id, postcode) in TEMP table and INSERT links via JOIN
+   - Mark 'gone from feed' outages as historical
+
+Env vars (local or Lambda)
+--------------------------
+DB_HOST, DB_PORT, DB_DB, DB_USER, DB_PASSWORD
+(optional) EXTRACT_SAVE_CSV=true  # not used here; extractor saves by default
+
+Lambda handler: load_outages.handler
 """
 
 from __future__ import annotations
@@ -18,21 +29,50 @@ import pandas as pd
 import psycopg2
 from psycopg2.extras import execute_values
 from dotenv import load_dotenv, find_dotenv
+
 from transform_outages import transform_outages
 from extract_outages_csv import generate_outage_csv
 
 
+# ----------------------------
+# Configuration / Env
+# ----------------------------
+
 def load_db_config() -> Dict[str, Any]:
-    """Read DB connection settings from environment variables."""
-    load_dotenv()
-    return {
+    """
+    Load DB config from environment/.env and validate it.
+    Adds sslmode=require for RDS.
+    """
+    env_path = find_dotenv(usecwd=True)
+    if env_path:
+        print(f"Loading .env from: {env_path}")
+        load_dotenv(env_path)
+    else:
+        load_dotenv()
+
+    cfg = {
         "host": os.getenv("DB_HOST"),
-        "port": os.getenv("DB_PORT"),
-        "dbname": os.getenv("DB_NAME"),
-        "user": os.getenv("DB_USERNAME"),
+        "port": os.getenv("DB_PORT") or "5432",
+        "dbname": os.getenv("DB_NAME") or os.getenv("DB_NAME"),
+        "user": os.getenv("DB_USERNAME") or os.getenv("PGUSER"),
         "password": os.getenv("DB_PASSWORD"),
+        "sslmode": "require",
     }
 
+    missing = [k for k in ("host", "dbname", "user",
+                           "password") if not cfg.get(k)]
+    if missing:
+        redacted = {**cfg, "password": "***" if cfg.get("password") else None}
+        raise RuntimeError(
+            f"Missing required DB env vars: {missing}. "
+            f"Loaded (redacted): {redacted}"
+        )
+    return cfg
+
+
+# ----------------------------
+# SQL helpers
+# ----------------------------
 
 def sql_upsert_outage() -> str:
     return """
@@ -67,29 +107,41 @@ def sql_insert_links_from_tmp() -> str:
     ON CONFLICT DO NOTHING;
     """
 
+# 'gone from feed' helpers
+
+
+def sql_create_tmp_current_ids() -> str:
+    return "CREATE TEMP TABLE tmp_current_ids(outage_id varchar(50)) ON COMMIT DROP;"
+
+
+def sql_mark_gone_historical() -> str:
+    return """
+    UPDATE outage o
+    SET status = 'historical'
+    WHERE o.status = 'current'
+      AND NOT EXISTS (
+        SELECT 1 FROM tmp_current_ids t WHERE t.outage_id = o.outage_id
+      );
+    """
+
 
 def to_python(obj: Any) -> Any:
     """
-    Coerce pandas/NumPy scalars into Python-native objects psycopg2 understands.
-    - pandas.Timestamp to datetime.datetime (tz-aware)
-    - pandas.NaT/NaN to None
-    - everything else  -> unchanged
+    Coerce pandas/NumPy scalars into Python-native types psycopg2 understands:
+      - pandas.Timestamp -> datetime.datetime (tz-aware)
+      - pandas.NaT/NaN   -> None
+      - everything else  -> unchanged
     """
     if isinstance(obj, pd.Timestamp):
         return obj.to_pydatetime()
-    try:
-        if obj is None or (not isinstance(obj, str) and pd.isna(obj)):
-            return None
-    except Exception:
-        pass
+
+    if obj is None or (not isinstance(obj, str) and pd.isna(obj)):
+        return None
     return obj
 
 
 def df_to_tuples(df: pd.DataFrame, columns: Iterable[str] | None = None) -> List[Tuple]:
-    """
-    Convert a DataFrame (optionally selecting columns) into a list of tuples
-    with Python-native values (no NaT/NaN).
-    """
+    """Convert a DataFrame (optionally selecting columns) to list[tuple] with Python-native values."""
     if columns is not None:
         df = df[list(columns)]
     return [tuple(to_python(v) for v in row.values()) for row in df.to_dict("records")]
@@ -100,13 +152,12 @@ def prepare_rows_and_pairs(tables: Dict[str, pd.DataFrame]) -> Dict[str, List[Tu
     Prepare:
       - outages: list of tuples (outage_id, start_time, etr, category_id, status)
       - postcodes: list of tuples (postcode,)
-      - pairs: list of tuples (outage_id, postcode) 
+      - pairs: list of tuples (outage_id, postcode)  <-- used for TEMP table
     """
     outage_df = tables["outage"]
     postcode_df = tables["postcode"]
     link_df = tables["outage_postcode_link"]
 
-    # Outages & postcodes as usual
     outages = df_to_tuples(
         outage_df,   ["outage_id", "start_time", "etr", "category_id", "status"])
     postcodes = df_to_tuples(postcode_df, ["postcode"])
@@ -119,7 +170,7 @@ def prepare_rows_and_pairs(tables: Dict[str, pd.DataFrame]) -> Dict[str, List[Tu
         validate="many_to_one",
     )[["outage_id", "postcode"]].dropna()
 
-    # Optional normalization (helps avoid near-dup postcodes with weird spacing/case)
+    # Normalize postcode text to avoid near-dup issues
     pairs_df["postcode"] = (
         pairs_df["postcode"]
         .str.upper()
@@ -134,27 +185,47 @@ def prepare_rows_and_pairs(tables: Dict[str, pd.DataFrame]) -> Dict[str, List[Tu
 def load_to_rds(tables: Dict[str, pd.DataFrame], conn_params: Dict[str, Any]) -> Dict[str, int]:
     """
     Load outage-related tables into RDS inside a single transaction.
-    Uses a TEMP table to resolve outage_postcode_link via postcode text.
-    Returns counts of attempted rows per table for logging.
+
+    Steps:
+      0 - Stage current outage_ids in TEMP table
+      1 - UPSERT outage
+      2 - Mark previously-current but not-in-this-run as historical
+      3 - INSERT postcode (ignore duplicates)
+      4 - Stage (outage_id, postcode) in TEMP and INSERT links via JOIN
+
+    Returns counts of attempted rows for logging.
     """
     prepared = prepare_rows_and_pairs(tables)
 
+    # For step (0) + (2)
+    current_ids = [(row[0],)
+                   for row in prepared["outages"]]  # outage_id is first item
+
     with psycopg2.connect(**conn_params) as conn:
         with conn.cursor() as cur:
-            # Upsert outages
+            # 0) Stage current IDs from this run
+            cur.execute(sql_create_tmp_current_ids())
+            if current_ids:
+                execute_values(
+                    cur, "INSERT INTO tmp_current_ids (outage_id) VALUES %s;", current_ids)
+
+            # 1) Upsert outages
             o_count = 0
             if prepared["outages"]:
                 execute_values(cur, sql_upsert_outage(), prepared["outages"])
                 o_count = len(prepared["outages"])
 
-            # Insert postcodes (ignore duplicates)
+            # 2) Flip 'gone from feed' rows to historical
+            cur.execute(sql_mark_gone_historical())
+
+            # 3) Insert postcodes
             p_count = 0
             if prepared["postcodes"]:
                 execute_values(cur, sql_insert_postcode(),
                                prepared["postcodes"])
                 p_count = len(prepared["postcodes"])
 
-            # Stage link pairs and insert via JOIN
+            # 4) Insert links via TEMP table + JOIN
             l_count = 0
             if prepared["pairs"]:
                 cur.execute(sql_create_tmp_pairs())
@@ -171,10 +242,8 @@ def load_to_rds(tables: Dict[str, pd.DataFrame], conn_params: Dict[str, Any]) ->
 def orchestrate() -> Dict[str, Any]:
     """
     Run a full ETL cycle: extract -> transform -> load.
-    Returns a small result summary for logs/monitoring.
     """
-
-    # Extract fresh (default: no file write in Lambda)
+    # Extract fresh (your extractor saves to disk by default; it also returns a DataFrame)
     raw_df = generate_outage_csv()
 
     # Transform
@@ -188,25 +257,14 @@ def orchestrate() -> Dict[str, Any]:
 
 
 def handler(event, context):
-    """
-    AWS Lambda handler.
-
-    Set the handler in AWS to: load_outages.handler
-
-    Env vars:
-      DB_HOST, DB_PORT, DB_DB, DB_USER, DB_PASSWORD
-      (optional) EXTRACT_SAVE_CSV=true  # writes CSV to /tmp for debugging
-    """
+    """AWS Lambda handler (set to load_outages.handler)."""
     try:
-        # simple health check path
         if isinstance(event, dict) and event.get("ping"):
             return {"statusCode": 200, "body": json.dumps({"ok": True, "pong": True})}
 
         result = orchestrate()
         return {"statusCode": 200, "body": json.dumps(result, default=str)}
-
     except Exception as e:
-        # CloudWatch will capture this print as an ERROR
         print("ERROR in load_outages.handler:", repr(e))
         return {"statusCode": 500, "body": json.dumps({"ok": False, "error": str(e)})}
 
