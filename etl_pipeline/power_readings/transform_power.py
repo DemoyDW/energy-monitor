@@ -3,7 +3,7 @@ Transform script to modify extracted data and prepare for database insertion
 """
 from datetime import datetime, timedelta, timezone
 import pandas as pd
-from extract import get_demand_summary, get_energy_pricing, get_generation_by_type, get_national_energy_generation
+from extract_power import get_demand_summary, get_energy_pricing, get_generation_by_type, get_national_energy_generation
 
 
 def calculate_avg_for_last_settlement(df: pd.DataFrame, column: str) -> float:

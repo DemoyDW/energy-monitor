@@ -3,7 +3,7 @@ Tests for transform script of power readings
 """
 from datetime import datetime, timedelta, timezone
 import pandas as pd
-from transform import calculate_avg_for_last_settlement, summarize_energy_generation, combine_company_generation
+from transform_power import calculate_avg_for_last_settlement, summarize_energy_generation, combine_company_generation
 
 
 def test_calc_avg_settlement():
