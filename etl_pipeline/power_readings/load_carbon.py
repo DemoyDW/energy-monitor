@@ -31,10 +31,11 @@ def sql_insert_carbon_reading() -> str:
             """
 
 
-def load_carbon_intensity_data(con, carbon_data: list[list]) -> None:
+def load_carbon_intensity_data(conn, carbon_data: list[list]) -> None:
     """Load the transformed carbon intensity data to the database."""
 
     query = sql_insert_carbon_reading()
 
-    with con.cursor as cur:
+    with conn.cursor as cur:
         execute_values(cur, query, carbon_data)
+        conn.commit()
