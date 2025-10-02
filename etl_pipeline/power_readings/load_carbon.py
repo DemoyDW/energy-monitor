@@ -15,10 +15,10 @@ def get_db_connection():
                    port=ENV["DB_PORT"])
 
 
-def load_carbon_intensity_data(con, carbon_data: list[list]) -> None:
-    """Load the transformed carbon intensity data to the database."""
+def sql_insert_carbon_reading() -> str:
+    """SQL query for inserting the data into the carbon_reading table."""
 
-    query = """
+    return """
             INSERT INTO carbon_reading
                 (date_time, carbon_intensity, region_id,
                 gas, coal, biomass, nuclear, hydro, imports,
@@ -27,6 +27,12 @@ def load_carbon_intensity_data(con, carbon_data: list[list]) -> None:
                 %s
             ;
             """
+
+
+def load_carbon_intensity_data(con, carbon_data: list[list]) -> None:
+    """Load the transformed carbon intensity data to the database."""
+
+    query = sql_insert_carbon_reading()
 
     with con.cursor as cur:
         execute_values(cur, query, carbon_data)
