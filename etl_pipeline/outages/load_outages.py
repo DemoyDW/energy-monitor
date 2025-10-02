@@ -33,6 +33,7 @@ def get_db_connection():
 
 
 def sql_upsert_outage() -> str:
+    """ Upsert outages by outage_id; inserts new rows or updates start_time, etr, category_id, and status on conflict. """
     return """
     INSERT INTO outage (outage_id, start_time, etr, category_id, status)
     VALUES %s
@@ -45,6 +46,7 @@ def sql_upsert_outage() -> str:
 
 
 def sql_insert_postcode() -> str:
+    """ Insert distinct postcodes; ignore duplicates via ON CONFLICT. """
     return """
     INSERT INTO postcode (postcode)
     VALUES %s
@@ -53,10 +55,12 @@ def sql_insert_postcode() -> str:
 
 
 def sql_create_tmp_pairs() -> str:
+    """ Create a TEMP table to stage (outage_id, postcode) pairs for this run. """
     return "CREATE TEMP TABLE tmp_pairs(outage_id varchar(50), postcode text) ON COMMIT DROP;"
 
 
 def sql_insert_links_from_tmp() -> str:
+    """ Insert outage→postcode links by joining staged pairs to real postcode_ids. """
     return """
     INSERT INTO outage_postcode_link (outage_id, postcode_id)
     SELECT t.outage_id, p.postcode_id
@@ -67,10 +71,12 @@ def sql_insert_links_from_tmp() -> str:
 
 
 def sql_create_tmp_current_ids() -> str:
+    """ Create a TEMP table to stage outage_ids present in the current feed. """
     return "CREATE TEMP TABLE tmp_current_ids(outage_id varchar(50)) ON COMMIT DROP;"
 
 
 def sql_mark_gone_historical() -> str:
+    """ Mark outages as historical if they were 'current' but absent from this run's IDs. """
     return """
     UPDATE outage o
     SET status = 'historical'
