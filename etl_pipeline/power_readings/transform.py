@@ -11,6 +11,9 @@ def calculate_avg_for_last_settlement(df: pd.DataFrame, column: str) -> float:
 
     df['startTime'] = pd.to_datetime(df['startTime'], utc=True)
 
+    # Reading come in 5 minutes interval, we are triggering readings at 35 past
+    # We want all 6 readings in the 30 minute window, therefore 39 is chosen
+    # 5 minutes are deducted due to tbe 35 and 5 past trigger
     end = datetime.now(timezone.utc) - timedelta(minutes=5)
     start = end - timedelta(minutes=39)
 
@@ -55,6 +58,7 @@ def summarize_energy_generation(df: pd.DataFrame, mappings: dict) -> dict:
 
 def combine_company_generation(df: pd.DataFrame) -> pd.DataFrame:
     """Combine different parts of a country to 1 country"""
+    # map to group all relevant countries in to one
     country_map = {
         'Belgium (ElecLink)': 'Belgium',
         'Belgium (Nemo Link)': 'Belgium',
@@ -78,8 +82,10 @@ def combine_company_generation(df: pd.DataFrame) -> pd.DataFrame:
 def transform_all_data(time: list) -> list:
     """Put all values in to a list ready to be inserted to database"""
 
+    # We are taking reading every 30 minutes, but triggering at 35 past
     all_data = []
-    all_data.append(time[0])
+    current_time = datetime.now() - timedelta(minutes=5)
+    all_data.append(current_time.isoformat())
 
     # National energy generation
     national_generation = get_national_energy_generation(time[0], time[1])
