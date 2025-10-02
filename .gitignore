@@ -1,0 +1,13 @@
+.venv
+*.log
+*.env
+*.json
+.terraform/*
+.terraform*
+terraform.tfvars
+terraform.tfstate.backup
+*.tfstate
+
+.env
+
+__pycache__
