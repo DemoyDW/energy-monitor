@@ -56,7 +56,7 @@ def summarise_energy_generation(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def transform_power_data(start_time, end_time) -> list:
+def transform_power_data(start_time: str, end_time: str) -> list:
     """Put all power, pricing and demand values in to a list ready to be inserted to the database."""
 
     transformed_data = []
