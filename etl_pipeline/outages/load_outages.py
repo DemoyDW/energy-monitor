@@ -1,16 +1,5 @@
 """
 Load outage data into RDS.
-
-Flow
-----
-1) Extract fresh CSV -> DataFrame (generate_outage_csv)
-2) Transform -> outage, postcode, outage_postcode_link (transform_outages)
-3) Load:
-   - UPSERT outage
-   - INSERT postcode (ON CONFLICT DO NOTHING)
-   - Stage (outage_id, postcode) in TEMP table and INSERT links via JOIN
-   - Mark 'gone from feed' outages as historical (guarded if feed empty)
-
 Lambda handler: load_outages.handler
 """
 
