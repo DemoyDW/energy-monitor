@@ -224,8 +224,3 @@ def handler(event, context):
     except Exception as e:
         print("ERROR in load_outages.handler:", repr(e))
         return {"statusCode": 500, "body": json.dumps({"ok": False, "error": str(e)})}
-
-
-if __name__ == "__main__":
-    out = orchestrate()
-    print(json.dumps(out, indent=2))
