@@ -1,0 +1,42 @@
+name: Python Test Coverage Workflow
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Get the repository code"
+        uses: actions/checkout@v5
+
+      - name: Set up python
+        uses: actions/setup-python@v6
+     
+      - name: Install testing modules
+        run: pip install pytest pytest-cov 
+
+      - name: Install dashboard dependencies 
+        run: |
+          cd dashboard
+          pip install -r requirements.txt     
+      
+      - name: Install carbon reading requirements
+        run: |
+          cd etl_pipeline/carbon_readings
+          pip install -r requirements.txt  
+
+      - name: Install outages requirements
+        run: |
+          cd etl_pipeline/outages
+          pip install -r requirements.txt  
+
+      - name: Install power readings requirements
+        run: |
+          cd etl_pipeline/power_readings
+          pip install -r requirements.txt  
+    
+      - name: Run tests with coverage
+        run: pytest --cov=. --cov-fail-under=60
