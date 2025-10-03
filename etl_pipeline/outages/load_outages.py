@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 from os import environ as ENV
 from typing import Any, Dict, Iterable, List, Tuple
+from os import getenv
 
 import pandas as pd
 from psycopg2 import connect
@@ -203,13 +204,14 @@ def load_to_rds(tables: Dict[str, pd.DataFrame]) -> Dict[str, int]:
     return {"outage": o_count, "postcode": p_count, "outage_postcode_link": l_count}
 
 
-def orchestrate() -> Dict[str, Any]:
-    """
-    Run a full ETL cycle: extract -> transform -> load.
-    """
-    raw_df = generate_outage_csv()  # Extract fresh
-    tables = transform_outages(raw_df)  # Transform
-    counts = load_to_rds(tables)  # Load (uses get_db_connection())
+def orchestrate():
+    # In Lambda, EXTRACT_SAVE_CSV is usually unset/false
+    save = getenv("EXTRACT_SAVE_CSV", "false").lower() == "true"
+    save_path = "/tmp/power_outage_ext.csv" if save else None
+
+    raw_df = generate_outage_csv(save_path=save_path)
+    tables = transform_outages(raw_df)
+    counts = load_to_rds(tables)  # your existing load call
     return {"ok": True, "counts": counts}
 
 
