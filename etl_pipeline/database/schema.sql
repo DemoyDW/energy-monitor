@@ -2,18 +2,19 @@
 
 -- Category table
 CREATE TABLE category (
-    category_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    category VARCHAR(100) NOT NULL
+    category_id INT PRIMARY KEY,
+    category    VARCHAR(100) NOT NULL UNIQUE
 );
 
 -- Outage table 
 CREATE TABLE outage (
-    outage_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    start_time TIMESTAMP,
-    etr TIMESTAMP,
-    category_id int NOT NULL,
+    outage_id   VARCHAR(50) PRIMARY KEY,
+    start_time  TIMESTAMPTZ,
+    etr         TIMESTAMPTZ,
+    category_id INT NOT NULL,
+    status      VARCHAR(20) NOT NULL CHECK (status IN ('current','historical')),
     FOREIGN KEY (category_id) REFERENCES category(category_id)
-    );
+);
 
 
 -- region table
@@ -26,40 +27,36 @@ CREATE TABLE region (
 -- Postcode table
 CREATE TABLE postcode (
     postcode_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    postcode VARCHAR(100) NOT NULL UNIQUE,
-    region_id int NOT NULL,
-    FOREIGN KEY(region_id) REFERENCES region(region_id)
-
+    postcode    VARCHAR(20) NOT NULL UNIQUE
 );
 
 -- Outage postcode link table
 CREATE TABLE outage_postcode_link (
     outage_postcode_link_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    postcode_id int NOT NULL,
-    outage_id int NOT NULL,
-    FOREIGN KEY(outage_id) REFERENCES outage(outage_id),
-    FOREIGN KEY(postcode_id) REFERENCES postcode(postcode_id)
+    outage_id   VARCHAR(50) UNIQUE NOT NULL,
+    postcode_id INT  UNIQUE NOT NULL,
+    CONSTRAINT uq_outage_postcode UNIQUE (outage_id, postcode_id),
+    FOREIGN KEY (outage_id)  REFERENCES outage(outage_id),
+    FOREIGN KEY (postcode_id) REFERENCES postcode(postcode_id)
 );
-
 
 -- Customer table
 CREATE TABLE customer (
-    customer_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    customer_name VARCHAR(100) NOT NULL, 
-    customer_email VARCHAR(100) NOT NULL UNIQUE
+    customer_id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    customer_name        VARCHAR(100) NOT NULL,
+    customer_email       VARCHAR(100) NOT NULL UNIQUE,
+    summary_subscription  BOOLEAN
 );
 
 
 -- Customer postcode link table
-CREATE TABLE customer_postcode_link(
+CREATE TABLE customer_postcode_link (
     customer_postcode_link_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    customer_id int NOT NULL,
-    postcode_id int NOT NULL,
-    FOREIGN KEY(customer_id) REFERENCES customer(customer_id),
-    FOREIGN KEY(postcode_id) REFERENCES postcode(postcode_id)
+    customer_id  INT NOT NULL,
+    postcode_id  INT NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+    FOREIGN KEY (postcode_id) REFERENCES postcode(postcode_id)
 );
-
-
 
 
 
@@ -107,3 +104,6 @@ CREATE TABLE carbon_reading(
     );
 
 
+CREATE INDEX idx_outage_category_id ON outage(category_id);
+CREATE INDEX idx_link_postcode_id   ON outage_postcode_link(postcode_id);
+CREATE INDEX idx_link_outage_id     ON outage_postcode_link(outage_id);
