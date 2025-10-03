@@ -1,0 +1,27 @@
+#Base image of python
+FROM python:latest
+
+#Set the default directory
+WORKDIR dashboard
+
+#Copy over requirements
+COPY requirements.txt .
+
+#Install all requirements on the container
+RUN pip install -r requirements.txt
+
+#Copy over dashboard files
+COPY dashboard.py .
+
+COPY power_outages_signup.py .
+
+COPY energy_prices.py .
+
+COPY power_generation.py .
+
+COPY carbon_insights.py .
+
+COPY utils ./utils
+
+#Run the dashboard
+CMD streamlit run dashboard.py
