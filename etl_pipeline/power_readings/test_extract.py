@@ -16,8 +16,8 @@ def test_utc_settlement_time():
         assert len(result) == 2
 
 
-def test_utc_settlement_time_29_min():
-    """Testing get_utc_settlement_time is in a 29 min time window."""
+def test_utc_settlement_time_34_min():
+    """Testing get_utc_settlement_time is in a 34 min time window."""
 
     result = get_utc_settlement_time()
     start = datetime.fromisoformat(result[0])
