@@ -4,74 +4,75 @@ provider "aws" {
   secret_key = var.SECRET_KEY
 }
 
-# # IAM role for Lambda execution
+# IAM role for Lambda execution
 
-# data "aws_iam_policy_document" "assume_role" {
-#   statement {
-#     effect = "Allow"
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect = "Allow"
 
-#     principals {
-#       type        = "Service"
-#       identifiers = ["lambda.amazonaws.com"]
-#     }
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
 
-#     actions = ["sts:AssumeRole"]
-#   }
-# }
+    actions = ["sts:AssumeRole"]
+  }
+}
 
-# resource "aws_iam_role" "c19-etl-lambda-role" {
-#   name               = "c19-energy-etl-lambda-role"
-#   assume_role_policy = data.aws_iam_policy_document.assume_role.json
-# }
+resource "aws_iam_role" "c19-etl-lambda-role" {
+  name               = "c19-energy-etl-lambda-role"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
 
-# # Lambda Function 
+# Lambda Function 
 
-# resource "aws_lambda_function" "c19-energy-generation-etl-lambda" {
-#   function_name = "c19-energy-generation-etl-lambda"
-#   role          = aws_iam_role.c19-etl-lambda-role.arn
-#   package_type  = "Image"
-#   image_uri     = "${aws_ecr_repository.example.repository_url}:latest"
+resource "aws_lambda_function" "c19-energy-generation-etl-lambda" {
+  function_name = "c19-energy-generation-etl-lambda"
+  role          = aws_iam_role.c19-etl-lambda-role.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.c19-energy-monitor-readings.repository_url}:latest"
 
-#   environment {
-#     variables = {
-#       ACCESS_KEY = var.ACCESS_KEY,
-#       SECRET_ACCESS_KEY = var.ACCESS_KEY,
-#       REGION = var.REGION,
-#       DB_PORT = var.DB_PORT,
-#       DB_NAME = var.DB_NAME,
-#       DB_USERNAME = var.DB_USERNAME,
-#       DB_PASSWORD = var.DB_PASSWORD
-#     }
-#   }
+  environment {
+    variables = {
+      ACCESS_KEY = var.ACCESS_KEY,
+      SECRET_ACCESS_KEY = var.ACCESS_KEY,
+      REGION = var.REGION,
+      DB_HOST = var.DB_HOST,
+      DB_PORT = var.DB_PORT,
+      DB_NAME = var.DB_NAME,
+      DB_USERNAME = var.DB_USERNAME,
+      DB_PASSWORD = var.DB_PASSWORD
+    }
+  }
 
-#   memory_size = 512
-#   timeout     = 30
+  memory_size = 512
+  timeout     = 30
 
-#   architectures = ["arm64"] # Graviton support for better price/performance
-# }
+}
 
-# resource "aws_lambda_function" "c19-energy-outage-etl-lambda" {
-#   function_name = "c19-energy-outage-etl-lambda"
-#   role          = aws_iam_role.c19-etl-lambda-role.arn
-#   package_type  = "Image"
-#   image_uri     = "${aws_ecr_repository.example.repository_url}:latest"
+resource "aws_lambda_function" "c19-energy-outage-etl-lambda" {
+  function_name = "c19-energy-outage-etl-lambda"
+  role          = aws_iam_role.c19-etl-lambda-role.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.c19-energy-monitor-outages.repository_url}:latest"
+  
+  environment {
+    variables = {
+      ACCESS_KEY = var.ACCESS_KEY,
+      SECRET_ACCESS_KEY = var.ACCESS_KEY,
+      REGION = var.REGION,
+      DB_HOST = var.DB_HOST,
+      DB_PORT = var.DB_PORT,
+      DB_NAME = var.DB_NAME,
+      DB_USERNAME = var.DB_USERNAME,
+      DB_PASSWORD = var.DB_PASSWORD
+    }
+  }
 
-#   environment {
-#     variables = {
-#       ACCESS_KEY = var.ACCESS_KEY,
-#       SECRET_ACCESS_KEY = var.ACCESS_KEY,
-#       REGION = var.REGION,
-#       DB_PORT = var.DB_PORT,
-#       DB_NAME = var.DB_NAME,
-#       DB_USERNAME = var.DB_USERNAME,
-#       DB_PASSWORD = var.DB_PASSWORD
-#     }
-#   }
+  memory_size = 512
+  timeout     = 30
 
-#   memory_size = 512
-#   timeout     = 30
-
-#   architectures = ["arm64"] 
+}
 
 resource "aws_db_instance" "c19-energy-monitor-rds" {
   allocated_storage    = 10
@@ -116,7 +117,7 @@ resource "aws_ecs_task_definition" "c19-energy-monitor-dashboard" {
   container_definitions = jsonencode([
     {
         name = "c19-energy-monitor-dashboard"
-        image = "uri:latest"
+        image = "${aws_ecr_repository.c19-energy-monitor-dashboard.repository_url}:latest"
         memory = 128
         essential = true,
         portMappings = [
@@ -139,6 +140,7 @@ resource "aws_ecs_task_definition" "c19-energy-monitor-dashboard" {
             {name = "DB_NAME", value = var.DB_NAME},
             {name = "DB_USERNAME", value = var.DB_USERNAME},
             {name = "DB_PASSWORD", value = var.DB_PASSWORD},
+            {name = "DB_HOST", value = var.DB_HOST},
             {name = "DB_PORT", value = var.DB_PORT},
             {name = "AWS_ACCESS_KEY", value = var.ACCESS_KEY},
             {name = "AWS_SECRET_KEY", value = var.SECRET_KEY},
