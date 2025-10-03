@@ -2,7 +2,7 @@
 
 from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
-from extract_power import get_utc_settlement_time
+from extract_power import get_utc_settlement_time, convert_utc_time_string
 
 
 def test_utc_settlement_time():
@@ -39,3 +39,14 @@ def test_utc_settlement_time_iso_format():
         except ValueError:
             success = False
         assert success
+
+
+def test_convert_utc_time_string():
+    """
+    Testing the basic funcionality of the utc time
+    string conversion for the Elexon API.
+    """
+
+    test_time = ["14:45:15+00:00", "15:15:15+00:00"]
+
+    assert convert_utc_time_string(test_time) == ["14:45:15Z", "15:15:15Z"]
