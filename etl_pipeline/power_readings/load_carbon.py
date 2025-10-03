@@ -38,4 +38,4 @@ def load_carbon_intensity_data(conn, carbon_data: list[list]) -> None:
 
     with conn.cursor() as cur:
         execute_values(cur, query, carbon_data)
-        conn.commit()
+    conn.commit()

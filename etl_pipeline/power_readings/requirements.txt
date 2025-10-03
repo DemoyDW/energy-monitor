@@ -1,4 +1,7 @@
+dotenv
 requests
 pandas
+psycopg2-binary
 pytest
 python-dotenv
+

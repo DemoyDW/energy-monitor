@@ -21,14 +21,15 @@ def transform_carbon_intensity_data(carbon_data: list[dict]) -> list[list]:
     transformed_data = []
 
     for region in carbon_data:
-        # We are taking readings every half-hour, starting at 5 minutes past the hour
-        # to account for the price reading. However, the readings we are taking are for
-        # the half-hour settlement period from half-past to the hour, therefore we want
-        # the reading time to reflect this by being on the hour/half-hour, hence, we subtract 5 minutes.
-        time = datetime.now() - timedelta(minutes=5)
+
+        # Accounting for the fact we are triggering at 5 past the hour for pricing
+        # but the settlement readings are for the time on the hour/half-hour
+        settlement_time = datetime.now() - timedelta(minutes=5)
+
         region_id = region["regionid"]
         intensity = region["intensity"]["forecast"]
-        l = [time, intensity, region_id]
+        l = [settlement_time, intensity, region_id]
+
         generation = transform_generation_mix(region)
         l.extend(generation)
         transformed_data.append(l)
