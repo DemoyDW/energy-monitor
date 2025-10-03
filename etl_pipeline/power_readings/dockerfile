@@ -1,0 +1,17 @@
+FROM public.ecr.aws/lambda/python:latest
+
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+COPY requirements.txt .
+
+RUN pip install -r requirements.txt
+
+COPY extract_carbon.py .
+COPY extract_power.py .
+COPY transform_carbon.py .
+COPY transform_power.py .
+COPY load_carbon.py .
+COPY load_power.py .
+COPY load_main.py .
+
+CMD [ "load_main.handler" ]
