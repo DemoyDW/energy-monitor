@@ -8,13 +8,13 @@ CREATE TABLE category (
 
 -- Outage table 
 CREATE TABLE outage (
-    outage_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    start_time TIMESTAMP,
-    etr TIMESTAMP,
-    category_id int NOT NULL,
-    status VARCHAR(20) NOT NULL,
+    outage_id   VARCHAR(50) PRIMARY KEY,
+    start_time  TIMESTAMPTZ,
+    etr         TIMESTAMPTZ,
+    category_id INT NOT NULL,
+    status      VARCHAR(20) NOT NULL CHECK (status IN ('current','historical')),
     FOREIGN KEY (category_id) REFERENCES category(category_id)
-    );
+);
 
 
 -- region table
@@ -32,11 +32,11 @@ CREATE TABLE postcode (
 
 -- Outage postcode link table
 CREATE TABLE outage_postcode_link (
-    outage_postcode_link_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    postcode_id int NOT NULL,
-    outage_id int NOT NULL,
-    FOREIGN KEY(outage_id) REFERENCES outage(outage_id),
-    FOREIGN KEY(postcode_id) REFERENCES postcode(postcode_id)
+    outage_id   VARCHAR(50) NOT NULL,
+    postcode_id INT         NOT NULL,
+    PRIMARY KEY (outage_id, postcode_id),
+    FOREIGN KEY (outage_id)  REFERENCES outage(outage_id),
+    FOREIGN KEY (postcode_id) REFERENCES postcode(postcode_id)
 );
 
 
@@ -104,3 +104,6 @@ CREATE TABLE carbon_reading(
     );
 
 
+CREATE INDEX idx_outage_category_id ON outage(category_id);
+CREATE INDEX idx_link_postcode_id   ON outage_postcode_link(postcode_id);
+CREATE INDEX idx_link_outage_id     ON outage_postcode_link(outage_id);
