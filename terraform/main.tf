@@ -26,8 +26,8 @@ provider "aws" {
 
 # # Lambda Function 
 
-# resource "aws_lambda_function" "c19-energy-monitor-etl-lambda" {
-#   function_name = "c19-energy-et-lambda"
+# resource "aws_lambda_function" "c19-energy-generation-etl-lambda" {
+#   function_name = "c19-energy-generation-etl-lambda"
 #   role          = aws_iam_role.c19-etl-lambda-role.arn
 #   package_type  = "Image"
 #   image_uri     = "${aws_ecr_repository.example.repository_url}:latest"
@@ -50,7 +50,28 @@ provider "aws" {
 #   architectures = ["arm64"] # Graviton support for better price/performance
 # }
 
-# RDS INSTANCE
+# resource "aws_lambda_function" "c19-energy-outage-etl-lambda" {
+#   function_name = "c19-energy-outage-etl-lambda"
+#   role          = aws_iam_role.c19-etl-lambda-role.arn
+#   package_type  = "Image"
+#   image_uri     = "${aws_ecr_repository.example.repository_url}:latest"
+
+#   environment {
+#     variables = {
+#       ACCESS_KEY = var.ACCESS_KEY,
+#       SECRET_ACCESS_KEY = var.ACCESS_KEY,
+#       REGION = var.REGION,
+#       DB_PORT = var.DB_PORT,
+#       DB_NAME = var.DB_NAME,
+#       DB_USERNAME = var.DB_USERNAME,
+#       DB_PASSWORD = var.DB_PASSWORD
+#     }
+#   }
+
+#   memory_size = 512
+#   timeout     = 30
+
+#   architectures = ["arm64"] 
 
 resource "aws_db_instance" "c19-energy-monitor-rds" {
   allocated_storage    = 10
