@@ -44,7 +44,7 @@ CREATE TABLE customer (
     customer_id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     customer_name        VARCHAR(100) NOT NULL,
     customer_email       VARCHAR(100) NOT NULL UNIQUE,
-    summary_description  VARCHAR(100) NOT NULL
+    summary_subscription  BOOLEAN
 );
 
 
