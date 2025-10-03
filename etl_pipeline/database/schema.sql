@@ -33,8 +33,8 @@ CREATE TABLE postcode (
 -- Outage postcode link table
 CREATE TABLE outage_postcode_link (
     outage_postcode_link_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    outage_id   VARCHAR(50) UNIQUE NOT NULL,
-    postcode_id INT  UNIQUE NOT NULL,
+    outage_id   VARCHAR(50) NOT NULL,
+    postcode_id INT NOT NULL,
     CONSTRAINT uq_outage_postcode UNIQUE (outage_id, postcode_id),
     FOREIGN KEY (outage_id)  REFERENCES outage(outage_id),
     FOREIGN KEY (postcode_id) REFERENCES postcode(postcode_id)
