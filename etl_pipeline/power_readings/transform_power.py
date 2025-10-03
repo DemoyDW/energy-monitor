@@ -76,7 +76,8 @@ def transform_power_data(start_time: str, end_time: str) -> list:
 
     # Average demand within past settlement
     demand_summary = get_demand_summary()
-    average_demand = calculate_avg_demand_last_settlement(demand_summary)
+    average_demand = float(
+        calculate_avg_demand_last_settlement(demand_summary))
     transformed_data.append(average_demand)
 
     # Energy generation by country

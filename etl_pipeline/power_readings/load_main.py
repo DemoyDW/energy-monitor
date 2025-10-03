@@ -18,6 +18,7 @@ def handler(event=None, context=None) -> dict:
     carbon_data = transform_carbon_intensity_data(carbon_data)
     load_carbon_intensity_data(conn, carbon_data)
 
+    # Transform gets the data inside of the function
     power_data = transform_power_data(start_time, end_time)
     load_power_reading_data(conn, power_data)
 
