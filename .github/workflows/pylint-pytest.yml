@@ -27,11 +27,6 @@ jobs:
         run: |
           cd dashboard
           pip install -r requirements.txt     
-      
-      - name: Install carbon reading requirements
-        run: |
-          cd etl_pipeline/carbon_readings
-          pip install -r requirements.txt  
 
       - name: Install outages requirements
         run: |
@@ -63,11 +58,6 @@ jobs:
         run: |
           cd dashboard
           pip install -r requirements.txt     
-
-      - name: Install carbon reading requirements
-        run: |
-          cd etl_pipeline/carbon_readings
-          pip install -r requirements.txt 
 
       - name: Install outages requirements
         run: |
