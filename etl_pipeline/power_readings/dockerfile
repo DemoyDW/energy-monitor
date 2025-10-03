@@ -1,3 +1,4 @@
+# Set the AWS base image for a lambda function 
 FROM public.ecr.aws/lambda/python:latest
 
 WORKDIR ${LAMBDA_TASK_ROOT}
@@ -6,6 +7,7 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
+# Load all necessary files for the ETL pipelines
 COPY extract_carbon.py .
 COPY extract_power.py .
 COPY transform_carbon.py .
