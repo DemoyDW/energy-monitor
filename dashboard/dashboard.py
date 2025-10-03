@@ -2,4 +2,6 @@
 import streamlit as st
 
 
-st.header("Energy monitor dashboard")
+pg = st.navigation([st.Page("power_generation.py"),
+                   st.Page("carbon_insights.py"), st.Page("energy_prices.py"), st.Page("power_outages_signup.py")])
+pg.run()
