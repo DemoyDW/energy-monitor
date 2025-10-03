@@ -2,8 +2,8 @@
 
 -- Category table
 CREATE TABLE category (
-    category_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    category VARCHAR(100) NOT NULL
+    category_id INT PRIMARY KEY,
+    category    VARCHAR(100) NOT NULL UNIQUE
 );
 
 -- Outage table 
@@ -27,7 +27,7 @@ CREATE TABLE region (
 -- Postcode table
 CREATE TABLE postcode (
     postcode_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    postcode VARCHAR(100) NOT NULL UNIQUE
+    postcode    VARCHAR(20) NOT NULL UNIQUE
 );
 
 -- Outage postcode link table
@@ -39,23 +39,22 @@ CREATE TABLE outage_postcode_link (
     FOREIGN KEY (postcode_id) REFERENCES postcode(postcode_id)
 );
 
-
 -- Customer table
 CREATE TABLE customer (
-    customer_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    customer_name VARCHAR(100) NOT NULL, 
-    customer_email VARCHAR(100) NOT NULL UNIQUE,
-    summary_description VARCHAR(100) NOT NULL
+    customer_id          INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    customer_name        VARCHAR(100) NOT NULL,
+    customer_email       VARCHAR(100) NOT NULL UNIQUE,
+    summary_description  VARCHAR(100) NOT NULL
 );
 
 
 -- Customer postcode link table
-CREATE TABLE customer_postcode_link(
+CREATE TABLE customer_postcode_link (
     customer_postcode_link_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    customer_id int NOT NULL,
-    postcode_id int NOT NULL,
-    FOREIGN KEY(customer_id) REFERENCES customer(customer_id),
-    FOREIGN KEY(postcode_id) REFERENCES postcode(postcode_id)
+    customer_id  INT NOT NULL,
+    postcode_id  INT NOT NULL,
+    FOREIGN KEY (customer_id) REFERENCES customer(customer_id),
+    FOREIGN KEY (postcode_id) REFERENCES postcode(postcode_id)
 );
 
 
