@@ -8,7 +8,10 @@ def transform_generation_mix(region: dict) -> list[float]:
 
     fuel_types = region["generationmix"]
 
-    return [f["perc"] for f in fuel_types]
+    # Ordering values to account for schema's incorrect ordering
+    fuel_ordering = [3, 1, 0, 4, 6, 2, 5, 8, 7]
+
+    return [fuel_types[f]["perc"] for f in fuel_ordering]
 
 
 def transform_carbon_intensity_data(carbon_data: list[dict]) -> list[list]:

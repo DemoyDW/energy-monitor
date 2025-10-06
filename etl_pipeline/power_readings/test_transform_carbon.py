@@ -19,7 +19,7 @@ def test_transform_generation_mix():
 
     transform = transform_generation_mix(generation_data)
 
-    assert transform == [0, 0, 0, 0, 0, 0, 0, 1.1, 98.9]
+    assert transform == [0, 0, 0, 0, 0, 0, 0, 98.9, 1.1]
     assert all(isinstance(d, (float, int)) for d in transform)
     assert isinstance(transform, list)
 
@@ -55,5 +55,5 @@ def test_transform_carbon_intensity_data():
     assert len(transform) == 2
     assert isinstance(transform[0][0], datetime)
     assert isinstance(transform[1][0], datetime)
-    assert transform[0][1:] == [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 100]
-    assert transform[1][1:] == [1, 2, 0.7, 0, 0, 0, 18.9, 0, 0, 1.2, 79.2]
+    assert transform[0][1:] == [0, 1, 0, 0, 0, 0, 0, 0, 0, 100, 0]
+    assert transform[1][1:] == [1, 2, 0, 0, 0.7, 18.9, 0, 0, 0, 79.2, 1.2]
