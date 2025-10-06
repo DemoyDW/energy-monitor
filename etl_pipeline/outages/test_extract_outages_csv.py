@@ -1,54 +1,85 @@
-# pylint: skip-file
-""" 
-Tests to make sure the extract_outages_csv.py file is working as intended. Used mocking to simulate the API 
-request without having to directly call it.
 """
-import io
+Tests for extract_outages_csv.generate_outage_csv
+
+- Mocks requests.get so no real network call is made.
+- Verifies we parse current CSV schema and (optionally) write to disk.
+"""
+
+from pathlib import Path
 from unittest.mock import patch, MagicMock
+import io
 import pandas as pd
 import pytest
+
 from extract_outages_csv import generate_outage_csv
 
 
+def _fake_csv_text() -> str:
+    # Matches the live schema you've been using
+    return (
+        "Upload Date,Region,Incident ID,Confirmed Off,Predicted Off,Restored,Status,Planned,Category,Resource Status,Start Time,ETR,Voltage,Location Latitude,Location Longitude,Postcodes\n"
+        "2025-10-01T14:09:00,South West,INCD-1,0,0,0,In Progress,False,LV GENERIC,ONS,2025-10-01T08:29:00,2025-10-01T16:30:00,LV,50.38,-4.02,AB12 1AB\n"
+    )
+
+
 @patch("extract_outages_csv.requests.get")
-@patch("extract_outages_csv.pd.DataFrame.to_csv")
-def test_generate_outage_csv_success(mock_to_csv, mock_get, tmp_path):
-    """ Test to check that when given the data it can retrieve it and store it as a csv. """
-    # Fake CSV text to return from requests.get
-    fake_csv = "Outage ID,Category,Start Time,ETR,Postcodes\n1,Planned,2025-09-30,2025-10-01,AB12\n"
+def test_generate_outage_csv_returns_df_and_writes_when_save_path_given(mock_get, tmp_path):
+    """When save_path is passed, we return a DataFrame AND write the CSV to that path."""
+    # Mock the HTTP response
+    mock_resp = MagicMock()
+    mock_resp.text = _fake_csv_text()
+    mock_resp.raise_for_status = MagicMock()
+    mock_get.return_value = mock_resp
 
-    # Configure mock requests.get
-    mock_response = MagicMock()
-    mock_response.text = fake_csv
-    mock_response.raise_for_status = MagicMock()
-    mock_get.return_value = mock_response
+    save_file = tmp_path / "power_outage_ext.csv"
 
-    # Call function
-    generate_outage_csv()
+    # Act
+    df = generate_outage_csv(save_path=str(save_file))
 
-    # Ensure requests.get called with headers
+    # HTTP called with headers containing User-Agent
     mock_get.assert_called_once()
-    args, kwargs = mock_get.call_args
-    assert "User-Agent" in kwargs["headers"]
+    _, kwargs = mock_get.call_args
+    assert "headers" in kwargs and "User-Agent" in kwargs["headers"]
 
-    # Ensure pandas read_csv parsed correctly
-    df = pd.read_csv(io.StringIO(fake_csv))
+    # DF content matches our fake row
+    assert isinstance(df, pd.DataFrame)
     assert len(df) == 1
-    assert df.loc[0, "Category"] == "Planned"
+    assert df.loc[0, "Incident ID"] == "INCD-1"
+    assert df.loc[0, "Category"] == "LV GENERIC"
+    assert pd.to_datetime(df.loc[0, "Start Time"]
+                          ) == pd.Timestamp("2025-10-01T08:29:00")
 
-    # Ensure to_csv called once to save file
-    assert mock_to_csv.called
-    _, kwargs = mock_to_csv.call_args
-    assert kwargs["index"] is False
+    # File was written and is readable
+    assert save_file.exists()
+    disk_df = pd.read_csv(save_file)
+    assert len(disk_df) == 1
+    assert disk_df.loc[0, "Postcodes"] == "AB12 1AB"
+
+
+@patch("extract_outages_csv.requests.get")
+def test_generate_outage_csv_returns_df_without_writing_when_no_save_path(mock_get, tmp_path):
+    """When save_path is NOT passed, we return a DataFrame and do NOT create files."""
+    mock_resp = MagicMock()
+    mock_resp.text = _fake_csv_text()
+    mock_resp.raise_for_status = MagicMock()
+    mock_get.return_value = mock_resp
+
+    # Act
+    df = generate_outage_csv()
+
+    assert isinstance(df, pd.DataFrame)
+    assert len(df) == 1
+
+    # Ensure the tmp dir stayed empty (no implicit writes)
+    assert list(Path(tmp_path).glob("*")) == []
 
 
 @patch("extract_outages_csv.requests.get")
 def test_generate_outage_csv_http_error(mock_get):
-    """ Test to see that if there was an error it reflects that. """
-    # Simulate requests raising an HTTP error
-    mock_response = MagicMock()
-    mock_response.raise_for_status.side_effect = Exception("HTTP Error")
-    mock_get.return_value = mock_response
+    """HTTP errors bubble up."""
+    mock_resp = MagicMock()
+    mock_resp.raise_for_status.side_effect = Exception("HTTP Error")
+    mock_get.return_value = mock_resp
 
     with pytest.raises(Exception, match="HTTP Error"):
         generate_outage_csv()
