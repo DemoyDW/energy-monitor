@@ -3,6 +3,7 @@ import streamlit as st
 from dotenv import load_dotenv
 from psycopg2 import connect
 from os import environ as ENV
+from requests import get
 
 
 @st.cache_resource
@@ -31,6 +32,103 @@ def summary_subscription(name: str, email: str, status: bool):
             cur.execute(query, (name, email, status))
 
 
+def alert_subscription(name: str, email: str, postcode: str):
+    """Subscribe a user for outage alerts for a postcode."""
+
+    customer_id = get_or_create_customer(name, email)
+    if customer_id == -1:
+        print("name and email do not match records")
+        return
+
+    if not verify_postcode(postcode):
+        print("Invalid postcode")
+        return
+    postcode_id = get_or_create_postcode(postcode.upper())
+    create_postcode_subscription(customer_id, postcode_id)
+
+
+def get_or_create_customer(name: str, email: str):
+    """
+    gets the postcode id or creates a postcode and returns id.
+    Returns either customer id or -1 if name doesn't match email.
+    """
+
+    customer_query = """
+        INSERT INTO customer (customer_name, customer_email, summary_subscription)
+        VALUES (%s, %s, False)
+        ON CONFLICT (customer_email) DO UPDATE
+        SET customer_email = EXCLUDED.customer_email
+        RETURNING customer_id;
+        """
+
+    verification_query = """
+        SELECT customer_name 
+        FROM customer
+        WHERE customer_id = %s
+    """
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(customer_query, (name, email))
+
+            customer_id = cur.fetchone()[0]
+
+            cur.execute(verification_query, (customer_id,))
+
+            customer_name = cur.fetchone()[0]
+
+        if name != customer_name:
+            return -1
+        return customer_id
+
+
+def verify_postcode(postcode: str):
+    """Verify that a postcode is real."""
+    base_url = "https://api.postcodes.io/postcodes/"
+    postcode = postcode.replace(" ", "")
+
+    response = get(f"{base_url}{postcode}")
+
+    if response.status_code == 200:
+        return True
+
+    else:
+        return False
+
+
+def get_or_create_postcode(postcode: str):
+    """gets the postcode id or creates a postcode and returns id."""
+    query = """
+    INSERT INTO postcode (postcode)
+    VALUES (%s)
+    ON CONFLICT (postcode) DO UPDATE
+    SET postcode = EXCLUDED.postcode
+    RETURNING postcode_id
+    """
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (postcode,))
+
+
+def create_postcode_subscription(customer_id: int, postcode_id: int) -> None:
+    """Inserts subscription into the customer/postcode link table"""
+    query = """
+        INSERT INTO customer_postcode_link (customer_id, postcode_id)
+        VALUES (%s, %s)
+        ON CONFLICT (customer_id, postcode_id) DO NOTHING;
+    """
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (customer_id, postcode_id))
+
+
+def remove_all_user_records(email: str):
+    """Removes all user records from the database."""
+    pass
+
+
 st.header("Sign up page")
 
 
@@ -45,8 +143,7 @@ with left:
     l, r = st.columns(2)
     with l:
         if st.button("subscribe", key=3):
-            pass
-
+            alert_subscription(name_alert, email_alert, postcode_alert)
     with r:
         if st.button("unsubscribe", key=4):
             pass
