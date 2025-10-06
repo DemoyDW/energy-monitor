@@ -43,7 +43,9 @@ def alert_subscription(name: str, email: str, postcode: str):
     if not verify_postcode(postcode):
         print("Invalid postcode")
         return
+    print(postcode.upper())
     postcode_id = get_or_create_postcode(postcode.upper())
+    print(f"This is the postcode id {postcode_id}")
     create_postcode_subscription(customer_id, postcode_id)
 
 
@@ -103,31 +105,77 @@ def get_or_create_postcode(postcode: str):
     VALUES (%s)
     ON CONFLICT (postcode) DO UPDATE
     SET postcode = EXCLUDED.postcode
-    RETURNING postcode_id
+    RETURNING postcode_id;
     """
 
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(query, (postcode,))
 
+            return cur.fetchone()[0]
+
 
 def create_postcode_subscription(customer_id: int, postcode_id: int) -> None:
     """Inserts subscription into the customer/postcode link table"""
+
+    print(postcode_id)
+    existing_alert_query = """
+        SELECT customer_postcode_link_id
+        FROM customer_postcode_link
+        WHERE customer_id = %s
+        AND postcode_id = %s;
+    """
+
     query = """
         INSERT INTO customer_postcode_link (customer_id, postcode_id)
-        VALUES (%s, %s)
-        ON CONFLICT (customer_id, postcode_id) DO NOTHING;
+        VALUES (%s, %s);
     """
 
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(query, (customer_id, postcode_id))
+            cur.execute(existing_alert_query, (customer_id, postcode_id))
+
+            alert_id = cur.fetchone()
+
+            if not alert_id:
+                cur.execute(query, (customer_id, postcode_id))
 
 
 def remove_all_user_records(name: str, email: str):
     """Removes all user records from the database."""
 
-    pass
+    customer_id_query = """
+        SELECT customer_id 
+        FROM customer
+        WHERE customer_email = %s
+        AND customer_name = %s;
+    """
+
+    alerts_removal_query = """
+        DELETE FROM customer_postcode_link
+        WHERE customer_id = %s
+    """
+
+    customer_removal_query = """
+        DELETE FROM customer
+        WHERE customer_id = %s
+    """
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(customer_id_query, (email, name))
+
+            customer_id = cur.fetchone()
+
+            if not customer_id:
+                print("No matching details recorded")
+                return
+
+            cur.execute(alerts_removal_query, (customer_id[0],))
+
+            cur.execute(customer_removal_query, (customer_id[0],))
+
+        print("Details removed.")
 
 
 st.header("Sign up page")
