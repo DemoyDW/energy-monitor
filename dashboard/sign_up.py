@@ -229,3 +229,9 @@ with right:
         if st.button("unsubscribe", key=8):
             summary_subscription(name_summary, email_summary, False)
             print('Unsubscribed to summary')
+
+st.header("Remove all records")
+name_removal = st.text_input("name", key=9)
+email_removal = st.text_input("email", key=10)
+if st.button("Remove records", key=11):
+    remove_all_user_records(name_removal, email_removal)
