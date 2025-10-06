@@ -32,8 +32,8 @@ def summary_subscription(name: str, email: str, status: bool):
             cur.execute(query, (name, email, status))
 
 
-def alert_subscription(name: str, email: str, postcode: str):
-    """Subscribe a user for outage alerts for a postcode."""
+def alert_subscription(name: str, email: str, postcode: str, addition: bool):
+    """Subscribe a customer for outage alerts for a postcode."""
 
     customer_id = get_or_create_customer(name, email)
     if customer_id == -1:
@@ -45,8 +45,11 @@ def alert_subscription(name: str, email: str, postcode: str):
         return
     print(postcode.upper())
     postcode_id = get_or_create_postcode(postcode.upper())
-    print(f"This is the postcode id {postcode_id}")
-    create_postcode_subscription(customer_id, postcode_id)
+
+    if addition:
+        create_postcode_subscription(customer_id, postcode_id)
+    else:
+        remove_postcode_subscription(customer_id, postcode_id)
 
 
 def get_or_create_customer(name: str, email: str):
@@ -118,7 +121,6 @@ def get_or_create_postcode(postcode: str):
 def create_postcode_subscription(customer_id: int, postcode_id: int) -> None:
     """Inserts subscription into the customer/postcode link table"""
 
-    print(postcode_id)
     existing_alert_query = """
         SELECT customer_postcode_link_id
         FROM customer_postcode_link
@@ -139,6 +141,20 @@ def create_postcode_subscription(customer_id: int, postcode_id: int) -> None:
 
             if not alert_id:
                 cur.execute(query, (customer_id, postcode_id))
+
+
+def remove_postcode_subscription(customer_id: int, postcode_id: int) -> None:
+    """Removes a subscription from the customer/postcode link table."""
+
+    query = """
+        DELETE FROM customer_postcode_link
+        WHERE customer_id = %s
+        AND postcode_id = %s
+    """
+
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(query, (customer_id, postcode_id))
 
 
 def remove_all_user_records(name: str, email: str):
@@ -192,10 +208,10 @@ with left:
     l, r = st.columns(2)
     with l:
         if st.button("subscribe", key=3):
-            alert_subscription(name_alert, email_alert, postcode_alert)
+            alert_subscription(name_alert, email_alert, postcode_alert, True)
     with r:
         if st.button("unsubscribe", key=4):
-            pass
+            alert_subscription(name_alert, email_alert, postcode_alert, False)
 
 
 with right:
