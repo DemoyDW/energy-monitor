@@ -124,8 +124,9 @@ def create_postcode_subscription(customer_id: int, postcode_id: int) -> None:
             cur.execute(query, (customer_id, postcode_id))
 
 
-def remove_all_user_records(email: str):
+def remove_all_user_records(name: str, email: str):
     """Removes all user records from the database."""
+
     pass
 
 
