@@ -1,6 +1,6 @@
 """Script with the functions to transform the carbon intensity data from the NESO API."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 def transform_generation_mix(region: dict) -> list[float]:
@@ -25,9 +25,10 @@ def transform_carbon_intensity_data(carbon_data: list[dict]) -> list[list]:
 
     for region in carbon_data:
 
-        # Accounting for the fact we are triggering at 5 past the hour for pricing
-        # but the settlement readings are for the time on the hour/half-hour
-        settlement_time = datetime.now() - timedelta(minutes=5)
+        # Adding 55 minutes because we want readings in UK time (UTC +1 hour) but are also subtracting
+        # 5 minutes to account for the fact we are triggering at 5 past the hour for the pricing
+        # API to work even though the settlement readings are on the hour/half-hour
+        settlement_time = datetime.now(timezone.utc) + timedelta(minutes=55)
 
         region_id = region["regionid"]
         intensity = region["intensity"]["forecast"]
