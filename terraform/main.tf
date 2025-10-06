@@ -268,7 +268,7 @@ resource "aws_iam_role_policy_attachment" "c19-energy-monitor-scheduler-role-att
 }
 
 # eventbridge scheduler for carbon/power reading ETL
-resource "aws_scheduler_schedule" "c19_energy_monitor_reading_ETL_etl_scheduler" {
+resource "aws_scheduler_schedule" "c19-energy-monitor-reading-etl-scheduler" {
   name        = "c19-energy-monitor-reading-ETL-scheduler"
   description = "Run reading ETL job every 30 minutes at 5 past the hour."
 
@@ -287,7 +287,7 @@ resource "aws_scheduler_schedule" "c19_energy_monitor_reading_ETL_etl_scheduler"
 
 
 # eventbridge scheduler for outage ETL
-resource "aws_scheduler_schedule" "c19_ajldka_short_term_etl_scheduler" {
+resource "aws_scheduler_schedule" "c19-energy-monitor-outage-step-scheduler" {
   name        = "c19-energy-monitor-reading-ETL-scheduler"
   description = "Run outage ETL job every 5."
 
