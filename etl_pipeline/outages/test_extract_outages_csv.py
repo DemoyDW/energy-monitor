@@ -7,7 +7,6 @@ Tests for extract_outages_csv.generate_outage_csv
 
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-import io
 import pandas as pd
 import pytest
 
