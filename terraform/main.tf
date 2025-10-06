@@ -254,7 +254,7 @@ resource "aws_iam_role" "c19-energy-monitor-scheduler-role" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "[scheduler.amazonaws.com](http://scheduler.amazonaws.com)"
+          Service = "scheduler.amazonaws.com"
         }
       }
     ]
