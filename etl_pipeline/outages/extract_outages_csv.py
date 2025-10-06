@@ -1,4 +1,5 @@
-from os import OSError
+
+from os import error
 import requests
 import pandas as pd
 from io import StringIO
@@ -28,3 +29,6 @@ def generate_outage_csv(save_path: str | None = None) -> pd.DataFrame:
             print("Skipping local save:", repr(e))
 
     return df
+
+
+generate_outage_csv()
