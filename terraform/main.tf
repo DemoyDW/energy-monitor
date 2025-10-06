@@ -242,3 +242,64 @@ resource "aws_ecr_repository" "c19-energy-monitor-dashboard" {
   }
 }
 
+
+
+# eventbridge iam role for schedulers
+resource "aws_iam_role" "c19-energy-monitor-scheduler-role" {
+  name = "c19-energy-monitor-scheduler-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "[scheduler.amazonaws.com](http://scheduler.amazonaws.com)"
+        }
+      }
+    ]
+  })
+}
+
+# eventbridge iam policy for schedulers
+resource "aws_iam_role_policy_attachment" "c19-energy-monitor-scheduler-role-attach" {
+  role       = aws_iam_role.c19-energy-monitor-scheduler-role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaRole"
+}
+
+# eventbridge scheduler for carbon/power reading ETL
+resource "aws_scheduler_schedule" "c19_energy_monitor_reading_ETL_etl_scheduler" {
+  name        = "c19-energy-monitor-reading-ETL-scheduler"
+  description = "Run reading ETL job every 30 minutes at 5 past the hour."
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression          = "cron(5/30 * * * ? *)"
+  schedule_expression_timezone = "Europe/London"
+
+  target {
+    arn      = aws_lambda_function.c19-energy-generation-etl-lambda.arn
+    role_arn = aws_iam_role.c19-energy-monitor-scheduler-role.arn
+  }
+}
+
+
+# eventbridge scheduler for outage ETL
+resource "aws_scheduler_schedule" "c19_ajldka_short_term_etl_scheduler" {
+  name        = "c19-energy-monitor-reading-ETL-scheduler"
+  description = "Run outage ETL job every 5."
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression          = "cron(*/5 * * * ? *)"
+  schedule_expression_timezone = "Europe/London"
+
+  target {
+    arn      = aws_lambda_function.c19-energy-outage-etl-lambda.arn
+    role_arn = aws_iam_role.c19-energy-monitor-scheduler-role.arn
+  }
+}
