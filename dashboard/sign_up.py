@@ -143,7 +143,7 @@ def create_postcode_subscription(customer_id: int, postcode_id: int) -> None:
         AND postcode_id = %s;
     """
 
-    query = """
+    create_alert_query = """
         INSERT INTO customer_postcode_link (customer_id, postcode_id)
         VALUES (%s, %s);
     """
@@ -155,7 +155,7 @@ def create_postcode_subscription(customer_id: int, postcode_id: int) -> None:
             alert_id = cur.fetchone()
 
             if not alert_id:
-                cur.execute(query, (customer_id, postcode_id))
+                cur.execute(create_alert_query, (customer_id, postcode_id))
                 st.success("Alert created")
             else:
                 st.info("Alert already exists")
