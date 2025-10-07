@@ -50,7 +50,7 @@ def summary_subscription(name: str, email: str, status: bool) -> None:
             st.success("subscription removed")
 
 
-def alert_subscription(name: str, email: str, postcode: str, addition: bool) -> None:
+def alert_subscription(name: str, email: str, postcode: str, is_addition: bool) -> None:
     """Subscribe a customer for outage alerts for a postcode."""
 
     customer_id = get_or_create_customer(name, email)
@@ -63,7 +63,7 @@ def alert_subscription(name: str, email: str, postcode: str, addition: bool) -> 
         return
     postcode_id = get_or_create_postcode(postcode.upper())
 
-    if addition:
+    if is_addition:
         create_postcode_subscription(customer_id, postcode_id)
     else:
         remove_postcode_subscription(customer_id, postcode_id)
