@@ -1,8 +1,8 @@
 """Script to allow users to sign up for email summaries or power outage alerts."""
-import streamlit as st
-from data import get_db_connection
 from psycopg2.extensions import connection
 from requests import get
+import streamlit as st
+from data import get_db_connection
 
 
 def summary_subscription(conn: connection, name: str, email: str, status: bool) -> None:
@@ -28,13 +28,13 @@ def summary_subscription(conn: connection, name: str, email: str, status: bool) 
         conn.commit()
 
     if res is None:
-        if status == True:
+        if status is True:
             st.info("Subscription already exists")
         else:
             st.info("Subscription did not exist")
-    elif res[0] == True:
+    elif res[0] is True:
         st.success("Subscription made")
-    elif res[0] == False:
+    elif res[0] is False:
         st.success("subscription removed")
 
 
@@ -99,7 +99,7 @@ def verify_postcode(postcode: str) -> tuple:
     base_url = "https://api.postcodes.io/postcodes/"
     postcode = postcode.replace(" ", "")
 
-    response = get(f"{base_url}{postcode}")
+    response = get(f"{base_url}{postcode}", timeout=30)
 
     if response.status_code == 200:
         return True, response.json()['result']['postcode']
@@ -216,7 +216,7 @@ def remove_all_user_records(conn: connection, name: str, email: str) -> None:
 
 if __name__ == "__main__":
 
-    conn = get_db_connection()
+    db_conn = get_db_connection()
 
     st.header("Sign up page")
 
@@ -231,11 +231,11 @@ if __name__ == "__main__":
         l, r = st.columns(2)
         with l:
             if st.button("subscribe", key=3):
-                alert_subscription(conn, name_alert, email_alert,
+                alert_subscription(db_conn, name_alert, email_alert,
                                    postcode_alert, True)
         with r:
             if st.button("unsubscribe", key=4):
-                alert_subscription(conn, name_alert, email_alert,
+                alert_subscription(db_conn, name_alert, email_alert,
                                    postcode_alert, False)
 
     with right:
@@ -246,14 +246,16 @@ if __name__ == "__main__":
         first, second = st.columns(2)
         with first:
             if st.button("subscribe", key=7):
-                summary_subscription(conn, name_summary, email_summary, True)
+                summary_subscription(
+                    db_conn, name_summary, email_summary, True)
 
         with second:
             if st.button("unsubscribe", key=8):
-                summary_subscription(conn, name_summary, email_summary, False)
+                summary_subscription(db_conn, name_summary,
+                                     email_summary, False)
 
     st.header("Remove all records")
     name_removal = st.text_input("name", key=9)
     email_removal = st.text_input("email", key=10)
     if st.button("Remove records", key=11):
-        remove_all_user_records(conn, name_removal, email_removal)
+        remove_all_user_records(db_conn, name_removal, email_removal)
