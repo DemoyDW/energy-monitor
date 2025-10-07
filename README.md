@@ -38,3 +38,4 @@ DB_HOST={your db host}
 ![Architecture diagram](diagrams/architecture_diagram.png)
 
 ## ERD
+![ERD](diagrams/energy-monitor-erd.png)
