@@ -71,7 +71,7 @@ def alert_subscription(name: str, email: str, postcode: str, is_addition: bool) 
 
 def get_or_create_customer(name: str, email: str) -> int:
     """
-    gets the postcode id or creates a postcode and returns id.
+    Gets the postcode id or creates a postcode and returns id.
     Returns either customer id or -1 if name doesn't match email.
     """
 
