@@ -10,7 +10,7 @@ from energy_prices_charts import (
 st.set_page_config(page_title="Energy Prices", layout="wide")
 st.title("Energy Prices")
 st.caption(
-    "Analysing how UK electricity prices relate to demand and vary by day of week.")
+    "Analysing how GB's electricity prices relate to demand and vary by day of week.")
 
 # Fetch recent data
 df = fetch_energy_prices(days_back=7)
