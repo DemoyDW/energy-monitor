@@ -9,7 +9,7 @@ from power_generation_charts import (
 st.set_page_config(page_title="Power Generation", layout="wide")
 st.title("Power Generation Overview")
 st.caption(
-    "Visualising the UK's electricity generation, demand, and interconnector flows.")
+    "Visualising GB's electricity generation, demand, and interconnector flows.")
 
 # Data fetch
 df = fetch_power_readings(days_back=7)
