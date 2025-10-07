@@ -113,9 +113,7 @@ def verify_postcode(postcode: str) -> bool:
 
     if response.status_code == 200:
         return True
-
-    else:
-        return False
+    return False
 
 
 def get_or_create_postcode(postcode: str) -> int:
