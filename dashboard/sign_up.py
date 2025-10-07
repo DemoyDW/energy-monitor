@@ -46,11 +46,10 @@ def alert_subscription(conn: connection, name: str, email: str, postcode: str, i
         st.warning("name and email do not match records")
         return
 
-    is_valid_postcode, formatted_postcode = verify_postcode(postcode)
-    if not is_valid_postcode:
+    if not verify_postcode(postcode):
         st.warning("Invalid postcode")
         return
-    postcode_id = get_or_create_postcode(conn, formatted_postcode)
+    postcode_id = get_or_create_postcode(conn, postcode.upper())
 
     if is_addition:
         create_postcode_subscription(conn, customer_id, postcode_id)
@@ -94,16 +93,26 @@ def get_or_create_customer(conn: connection, name: str, email: str) -> int:
     return customer_id
 
 
-def verify_postcode(postcode: str) -> tuple:
+def verify_postcode(postcode: str) -> bool:
     """Verify that a postcode is real."""
+    parts = postcode.split()
+
+    if len(parts) != 2:
+        return False
+
+    first, second = parts
+
+    if not (2 <= len(first) <= 4 and len(second) == 3):
+        return False
+
     base_url = "https://api.postcodes.io/postcodes/"
     postcode = postcode.replace(" ", "")
 
     response = get(f"{base_url}{postcode}", timeout=30)
 
     if response.status_code == 200:
-        return True, response.json()['result']['postcode']
-    return False, None
+        return True
+    return False
 
 
 def get_or_create_postcode(conn: connection, postcode: str) -> int:
