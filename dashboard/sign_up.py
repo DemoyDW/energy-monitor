@@ -2,12 +2,13 @@
 import streamlit as st
 from dotenv import load_dotenv
 from psycopg2 import connect
+from psycopg2.extensions import connection
 from os import environ as ENV
 from requests import get
 
 
 @st.cache_resource
-def get_db_connection():
+def get_db_connection() -> connection:
     """Connect to the postgres database managed by RDS."""
     load_dotenv()
 
@@ -18,7 +19,7 @@ def get_db_connection():
                    port=ENV["DB_PORT"])
 
 
-def summary_subscription(name: str, email: str, status: bool) -> None:
+def summary_subscription(conn: connection, name: str, email: str, status: bool) -> None:
     """Upsert customers table to adjust summary subscription status."""
     query = """
     UPDATE customer 
@@ -28,32 +29,33 @@ def summary_subscription(name: str, email: str, status: bool) -> None:
     RETURNING summary_subscription;
     """
 
-    customer_id = get_or_create_customer(name, email)
+    customer_id = get_or_create_customer(conn, name, email)
     if customer_id == -1:
         st.warning("name and email do not match records")
         return
 
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(query, (status, customer_id, status))
+    with conn.cursor() as cur:
+        cur.execute(query, (status, customer_id, status))
 
-            res = cur.fetchone()
+        res = cur.fetchone()
 
-        if res is None:
-            if status == True:
-                st.info("Subscription already exists")
-            else:
-                st.info("Subscription did not exist")
-        elif res[0] == True:
-            st.success("Subscription made")
-        elif res[0] == False:
-            st.success("subscription removed")
+        conn.commit()
+
+    if res is None:
+        if status == True:
+            st.info("Subscription already exists")
+        else:
+            st.info("Subscription did not exist")
+    elif res[0] == True:
+        st.success("Subscription made")
+    elif res[0] == False:
+        st.success("subscription removed")
 
 
-def alert_subscription(name: str, email: str, postcode: str, is_addition: bool) -> None:
+def alert_subscription(conn: connection, name: str, email: str, postcode: str, is_addition: bool) -> None:
     """Subscribe a customer for outage alerts for a postcode."""
 
-    customer_id = get_or_create_customer(name, email)
+    customer_id = get_or_create_customer(conn, name, email)
     if customer_id == -1:
         st.warning("name and email do not match records")
         return
@@ -62,15 +64,15 @@ def alert_subscription(name: str, email: str, postcode: str, is_addition: bool) 
     if not is_valid_postcode:
         st.warning("Invalid postcode")
         return
-    postcode_id = get_or_create_postcode(formatted_postcode)
+    postcode_id = get_or_create_postcode(conn, formatted_postcode)
 
     if is_addition:
-        create_postcode_subscription(customer_id, postcode_id)
+        create_postcode_subscription(conn, customer_id, postcode_id)
     else:
-        remove_postcode_subscription(customer_id, postcode_id)
+        remove_postcode_subscription(conn, customer_id, postcode_id)
 
 
-def get_or_create_customer(name: str, email: str) -> int:
+def get_or_create_customer(conn: connection, name: str, email: str) -> int:
     """
     Gets the postcode id or creates a postcode and returns id.
     Returns either customer id or -1 if name doesn't match email.
@@ -90,19 +92,20 @@ def get_or_create_customer(name: str, email: str) -> int:
         WHERE customer_id = %s
     """
 
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(customer_query, (name.title(), email))
+    with conn.cursor() as cur:
+        cur.execute(customer_query, (name.title(), email))
 
-            customer_id = cur.fetchone()[0]
+        customer_id = cur.fetchone()[0]
 
-            cur.execute(verification_query, (customer_id,))
+        cur.execute(verification_query, (customer_id,))
 
-            customer_name = cur.fetchone()[0]
+        customer_name = cur.fetchone()[0]
 
-        if name.title() != customer_name:
-            return -1
-        return customer_id
+        conn.commit()
+
+    if name.title() != customer_name:
+        return -1
+    return customer_id
 
 
 def verify_postcode(postcode: str) -> tuple:
@@ -117,7 +120,7 @@ def verify_postcode(postcode: str) -> tuple:
     return False, None
 
 
-def get_or_create_postcode(postcode: str) -> int:
+def get_or_create_postcode(conn: connection, postcode: str) -> int:
     """gets the postcode id or creates a postcode and returns id."""
     query = """
     INSERT INTO postcode (postcode)
@@ -127,14 +130,15 @@ def get_or_create_postcode(postcode: str) -> int:
     RETURNING postcode_id;
     """
 
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(query, (postcode,))
+    with conn.cursor() as cur:
+        cur.execute(query, (postcode,))
 
-            return cur.fetchone()[0]
+        conn.commit()
+
+        return cur.fetchone()[0]
 
 
-def create_postcode_subscription(customer_id: int, postcode_id: int) -> None:
+def create_postcode_subscription(conn: connection, customer_id: int, postcode_id: int) -> None:
     """Inserts subscription into the customer/postcode link table"""
 
     existing_alert_query = """
@@ -149,20 +153,21 @@ def create_postcode_subscription(customer_id: int, postcode_id: int) -> None:
         VALUES (%s, %s);
     """
 
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(existing_alert_query, (customer_id, postcode_id))
+    with conn.cursor() as cur:
+        cur.execute(existing_alert_query, (customer_id, postcode_id))
 
-            alert_id = cur.fetchone()
+        alert_id = cur.fetchone()
 
-            if not alert_id:
-                cur.execute(create_alert_query, (customer_id, postcode_id))
-                st.success("Alert created")
-            else:
-                st.info("Alert already exists")
+        if not alert_id:
+            cur.execute(create_alert_query, (customer_id, postcode_id))
+            st.success("Alert created")
+        else:
+            st.info("Alert already exists")
+
+        conn.commit()
 
 
-def remove_postcode_subscription(customer_id: int, postcode_id: int) -> None:
+def remove_postcode_subscription(conn: connection, customer_id: int, postcode_id: int) -> None:
     """Removes a subscription from the customer/postcode link table."""
 
     query = """
@@ -172,19 +177,20 @@ def remove_postcode_subscription(customer_id: int, postcode_id: int) -> None:
         RETURNING customer_postcode_link_id;
     """
 
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(query, (customer_id, postcode_id))
+    with conn.cursor() as cur:
+        cur.execute(query, (customer_id, postcode_id))
 
-            res = cur.fetchone()
+        res = cur.fetchone()
 
-            if res:
-                st.success("Alert Removed")
-            else:
-                st.info("Alert did not exist")
+        if res:
+            st.success("Alert Removed")
+        else:
+            st.info("Alert did not exist")
+
+        conn.commit()
 
 
-def remove_all_user_records(name: str, email: str) -> None:
+def remove_all_user_records(conn: connection, name: str, email: str) -> None:
     """Removes all user records from the database."""
 
     customer_id_query = """
@@ -204,24 +210,27 @@ def remove_all_user_records(name: str, email: str) -> None:
         WHERE customer_id = %s
     """
 
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(customer_id_query, (email, name.title()))
+    with conn.cursor() as cur:
+        cur.execute(customer_id_query, (email, name.title()))
 
-            customer_id = cur.fetchone()
+        customer_id = cur.fetchone()
 
-            if not customer_id:
-                st.info("No matching details recorded")
-                return
+        if not customer_id:
+            st.info("No matching details recorded")
+            return
 
-            cur.execute(alerts_removal_query, (customer_id[0],))
+        cur.execute(alerts_removal_query, (customer_id[0],))
 
-            cur.execute(customer_removal_query, (customer_id[0],))
+        cur.execute(customer_removal_query, (customer_id[0],))
 
-        st.success("Details removed.")
+        conn.commit()
+
+    st.success("Details removed.")
 
 
 if __name__ == "__main__":
+
+    conn = get_db_connection()
 
     st.header("Sign up page")
 
@@ -236,11 +245,11 @@ if __name__ == "__main__":
         l, r = st.columns(2)
         with l:
             if st.button("subscribe", key=3):
-                alert_subscription(name_alert, email_alert,
+                alert_subscription(conn, name_alert, email_alert,
                                    postcode_alert, True)
         with r:
             if st.button("unsubscribe", key=4):
-                alert_subscription(name_alert, email_alert,
+                alert_subscription(conn, name_alert, email_alert,
                                    postcode_alert, False)
 
     with right:
@@ -251,14 +260,14 @@ if __name__ == "__main__":
         first, second = st.columns(2)
         with first:
             if st.button("subscribe", key=7):
-                summary_subscription(name_summary, email_summary, True)
+                summary_subscription(conn, name_summary, email_summary, True)
 
         with second:
             if st.button("unsubscribe", key=8):
-                summary_subscription(name_summary, email_summary, False)
+                summary_subscription(conn, name_summary, email_summary, False)
 
     st.header("Remove all records")
     name_removal = st.text_input("name", key=9)
     email_removal = st.text_input("email", key=10)
     if st.button("Remove records", key=11):
-        remove_all_user_records(name_removal, email_removal)
+        remove_all_user_records(conn, name_removal, email_removal)
