@@ -15,7 +15,7 @@ st.header("Carbon Insights")
 
 
 # LOAD DATA
-st.caption("Live regional carbon intensity and generation mix data from RDS")
+st.caption("Live regional carbon intensity and generation mix data")
 
 df = get_carbon_intensity_data()
 df["date_time"] = pd.to_datetime(df["date_time"])
