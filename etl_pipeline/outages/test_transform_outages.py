@@ -23,8 +23,8 @@ def make_sample_raw():
         {
             "Incident ID": "INCD-2",
             "Start Time": "2025-09-30T10:00:00",
-            "ETR": "",                          # missing -> historical
-            "Category": "HV DAMAGE",            # expected -> 9
+            "ETR": "",                         # missing -> historical
+            "Category": "HV DAMAGE",           # expected -> 9
             "Postcodes": "XY9 8ZZ"
         }
     ])
