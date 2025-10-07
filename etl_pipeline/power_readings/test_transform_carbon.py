@@ -4,20 +4,10 @@ from transform_carbon import transform_generation_mix, transform_carbon_intensit
 from datetime import datetime
 
 
-def test_transform_generation_mix():
+def test_transform_generation_mix(generation_mix):
     """Test that transform_generation_mix works as intended on the API's data."""
 
-    generation_data = {'generationmix': [{'fuel': 'biomass', 'perc': 0},
-                                         {'fuel': 'coal', 'perc': 0},
-                                         {'fuel': 'imports', 'perc': 0},
-                                         {'fuel': 'gas', 'perc': 0},
-                                         {'fuel': 'nuclear', 'perc': 0},
-                                         {'fuel': 'other', 'perc': 0},
-                                         {'fuel': 'hydro', 'perc': 0},
-                                         {'fuel': 'solar', 'perc': 1.1},
-                                         {'fuel': 'wind', 'perc': 98.9}]}
-
-    transform = transform_generation_mix(generation_data)
+    transform = transform_generation_mix(generation_mix)
 
     assert transform == [0, 0, 0, 0, 0, 0, 0, 98.9, 1.1]
     assert all(isinstance(d, (float, int)) for d in transform)
