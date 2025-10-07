@@ -254,7 +254,7 @@ resource "aws_iam_role" "c19-energy-monitor-scheduler-role" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "scheduler.amazonaws.com"
+          Service = ["scheduler.amazonaws.com"]
         }
       }
     ]
@@ -286,20 +286,40 @@ resource "aws_scheduler_schedule" "c19-energy-monitor-reading-etl-scheduler" {
 }
 
 
-# eventbridge scheduler for outage ETL
-resource "aws_scheduler_schedule" "c19-energy-monitor-outage-step-scheduler" {
-  name        = "c19-energy-monitor-reading-ETL-scheduler"
-  description = "Run outage ETL job every 5."
 
-  flexible_time_window {
-    mode = "OFF"
-  }
 
-  schedule_expression          = "cron(*/5 * * * ? *)"
-  schedule_expression_timezone = "Europe/London"
+# # eventbridge scheduler for outage ETL (will be step function assigned, not Lambda)
+# resource "aws_scheduler_schedule" "c19-energy-monitor-outage-step-scheduler" {
+#   name        = "c19-energy-monitor-reading-ETL-scheduler"
+#   description = "Run outage ETL job every 5."
 
-  target {
-    arn      = aws_lambda_function.c19-energy-outage-etl-lambda.arn
-    role_arn = aws_iam_role.c19-energy-monitor-scheduler-role.arn
-  }
-}
+#   flexible_time_window {
+#     mode = "OFF"
+#   }
+
+#   schedule_expression          = "cron(*/5 * * * ? *)"
+#   schedule_expression_timezone = "Europe/London"
+
+#   target {
+#     arn      = aws_lambda_function.c19-energy-outage-etl-lambda.arn
+#     role_arn = aws_iam_role.c19-energy-monitor-scheduler-role.arn
+#   }
+# }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
