@@ -15,7 +15,7 @@ st.set_page_config(
 # Header
 st.title("Power Outages")
 st.subheader("Geographic Distribution of Power Outages")
-st.caption("Visualising UK outage locations aggregated by postcode")
+st.caption("Visualising UK outage locations aggregated by postcode.")
 
 # Time range toggle
 time_window = st.radio(
