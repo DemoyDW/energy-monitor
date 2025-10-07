@@ -31,28 +31,16 @@ def get_weekly_average(conn) -> int:
     return [round(t, 2) for t in total]
 
 
-def weekly_highest_price(conn) -> float:
-    """highest price for the week"""
+def weekly_price(conn, type="highest") -> float:
+    """Get highest or lowest price of the week"""
+
+    order = "DESC" if type == "highest" else "ASC"
     with conn.cursor() as cur:
-        cur.execute("""
+        cur.execute(f"""
             SELECT price, date_time
             FROM power_reading
             WHERE date_time >= NOW() - INTERVAL '7 days'
-            ORDER BY price DESC, date_time ASC
-            LIMIT 1;
-        """)
-        price = cur.fetchone()
-    return round(price[0], 2)
-
-
-def weekly_lowest_price(conn) -> float:
-    """lowest price for the week"""
-    with conn.cursor() as cur:
-        cur.execute("""
-            SELECT price, date_time
-            FROM power_reading
-            WHERE date_time >= NOW() - INTERVAL '7 days'
-            ORDER BY price ASC, date_time ASC
+            ORDER BY price {order}, date_time ASC
             LIMIT 1;
         """)
         price = cur.fetchone()
