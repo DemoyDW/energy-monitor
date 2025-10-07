@@ -29,7 +29,7 @@ def get_db_connection():
         password=ENV["DB_PASSWORD"],
         host=ENV["DB_HOST"],
         port=ENV["DB_PORT"],
-        sslmode=ENV.get("DB_SSLMODE", "require"),  # RDS defaults
+        sslmode=ENV.get("DB_SSLMODE", "require")
     )
 
 
@@ -159,7 +159,7 @@ def load_to_rds(tables: Dict[str, pd.DataFrame]) -> Dict[str, int]:
     """
     prepared = prepare_rows_and_pairs(tables)
     current_ids = [(row[0],)
-                   for row in prepared["outages"]]  # outage_id is first item
+                   for row in prepared["outages"]]
 
     with get_db_connection() as conn:
         with conn.cursor() as cur:
@@ -211,7 +211,7 @@ def orchestrate():
 
     raw_df = generate_outage_csv(save_path=save_path)
     tables = transform_outages(raw_df)
-    counts = load_to_rds(tables)  # your existing load call
+    counts = load_to_rds(tables)
     return {"ok": True, "counts": counts}
 
 
