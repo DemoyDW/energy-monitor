@@ -32,19 +32,18 @@ def get_weekly_average(conn) -> list[float]:
 
 
 def get_weekly_price(conn, type="highest") -> float:
-    """Get highest or lowest price of the week"""
-
+    """Get highest or lowest price of the week."""
     order = "DESC" if type == "highest" else "ASC"
     with conn.cursor() as cur:
         cur.execute(f"""
-            SELECT price, date_time
+            SELECT price
             FROM power_reading
             WHERE date_time >= NOW() - INTERVAL '7 days'
-            ORDER BY price {order}, date_time ASC
+            ORDER BY price {order}
             LIMIT 1;
         """)
         price = cur.fetchone()
-    return round(price[0], 2)
+    return price[0]
 
 
 def get_average_generation(conn) -> pd.DataFrame:
