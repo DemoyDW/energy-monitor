@@ -17,8 +17,8 @@ def get_db_connection():
                    port=ENV["DB_PORT"])
 
 
-def get_weekly_average(conn) -> int:
-    """total demand, average demand, average price for the week"""
+def get_weekly_average(conn) -> list[float]:
+    """Returns the total demand, average demand, and average price for the week"""
     with conn.cursor() as cur:
         cur.execute("""
             SELECT SUM(demand)AS total_demand, AVG(demand)AS average_demand, 
@@ -31,7 +31,7 @@ def get_weekly_average(conn) -> int:
     return [round(t, 2) for t in total]
 
 
-def weekly_price(conn, type="highest") -> float:
+def get_weekly_price(conn, type="highest") -> float:
     """Get highest or lowest price of the week"""
 
     order = "DESC" if type == "highest" else "ASC"
@@ -136,16 +136,16 @@ def interconnector_net_flow(conn) -> pd.DataFrame:
     return df
 
 
-def total_import_export(df: pd.DataFrame) -> tuple:
-    """Total import and total export over the week"""
+def get_total_import_export(df: pd.DataFrame) -> tuple:
+    """Returns the total energy import and export values over the week."""
     total_import = df.loc[df['Direction'] == 'Import', 'Net Flow'].sum()
     total_export = df.loc[df['Direction'] == 'Export', 'Net Flow'].abs().sum()
 
     return float(total_import), float(total_export)
 
 
-def national_avg_carbon_intensity(conn) -> float:
-    """Returns the national average carbon intensity over the last 7 days"""
+def get_national_avg_carbon_intensity(conn) -> float:
+    """Returns the national average carbon intensity over the last 7 days."""
     query = """
         SELECT ROUND(AVG(carbon_intensity)::numeric, 2) AS national_avg
         FROM carbon_reading
@@ -158,7 +158,8 @@ def national_avg_carbon_intensity(conn) -> float:
     return float(result['national_avg'])
 
 
-def avg_carbon_intensity_by_region(conn) -> pd.DataFrame:
+def get_avg_carbon_intensity_by_region(conn) -> pd.DataFrame:
+    """Returns the average carbon intensity for each region over the week"""
     query = """
         SELECT
             r.region_name,
@@ -177,8 +178,8 @@ def avg_carbon_intensity_by_region(conn) -> pd.DataFrame:
     return df
 
 
-def best_worst_region(df: pd.DataFrame) -> tuple:
-    """Best and worst carbon intensity region"""
+def get_most_least_carbon_intense_regions(df: pd.DataFrame) -> tuple:
+    """Returns the regions with the highest and lowest average carbon intensity over the week."""
     worst_row = df.iloc[0]
     best_row = df.iloc[-1]
     result = pd.DataFrame([
