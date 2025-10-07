@@ -61,9 +61,10 @@ def transform_power_data(start_time: str, end_time: str) -> list:
 
     transformed_data = []
 
-    # Accounting for the fact we are triggering at 5 past the hour for pricing
-    # but the settlement readings are for the time on the hour/half-hour
-    settlement_time = datetime.now() - timedelta(minutes=5)
+    # Adding 55 minutes because we want readings in UK time (UTC +1 hour) but are also subtracting
+    # 5 minutes to account for the fact we are triggering at 5 past the hour for the pricing
+    # API to work even though the settlement readings are on the hour/half-hour
+    settlement_time = datetime.now(timezone.utc) + timedelta(minutes=55)
     transformed_data.append(settlement_time)
 
     # National energy generation
