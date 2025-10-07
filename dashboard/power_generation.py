@@ -26,5 +26,6 @@ st.subheader("Total Generation vs Demand")
 st.caption("Shows how total grid demand (in MW) fluctuates over time.")
 st.altair_chart(build_demand_chart(df), use_container_width=True)
 
-st.subheader("Electricity Imports by Country")
+st.subheader("Electricity Imports and Exports by Country.")
+st.caption("Shows GB's energy imports and exports (negative import values on the graph) to other countries around Europe.")
 st.altair_chart(build_interconnect_chart(df), use_container_width=True)
