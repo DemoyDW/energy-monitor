@@ -35,5 +35,6 @@ DB_HOST={your db host}
 ### Run on the cloud
 
 ## Architecture
+![Architecture diagram](diagrams/architecture_diagram.png)
 
 ## ERD
