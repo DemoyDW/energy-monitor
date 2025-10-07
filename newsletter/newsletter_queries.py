@@ -17,40 +17,18 @@ def get_db_connection():
                    port=ENV["DB_PORT"])
 
 
-def weekly_total(conn) -> int:
-    """Total energy demand for the week"""
+def get_weekly_average(conn) -> int:
+    """total demand, average demand, average price for the week"""
     with conn.cursor() as cur:
         cur.execute("""
-            SELECT SUM(demand)AS total_demand
+            SELECT SUM(demand)AS total_demand, AVG(demand)AS average_demand, 
+                          AVG(price)AS average_price
             FROM power_reading
             WHERE date_time >= NOW() - INTERVAL '7 days';
                     """)
         total = cur.fetchone()
-    return round(total[0], 2)
 
-
-def weekly_average(conn) -> int:
-    """Total average demand for the week"""
-    with conn.cursor() as cur:
-        cur.execute("""
-            SELECT AVG(demand)AS average_demand
-            FROM power_reading
-            WHERE date_time >= NOW() - INTERVAL '7 days';
-                    """)
-        total = cur.fetchone()
-    return round(total[0], 2)
-
-
-def weekly_average_price(conn) -> int:
-    """average price for the week"""
-    with conn.cursor() as cur:
-        cur.execute("""
-            SELECT AVG(price)AS average_price
-            FROM power_reading
-            WHERE date_time >= NOW() - INTERVAL '7 days';
-        """)
-        price = cur.fetchone()
-    return round(price[0], 2)
+    return [round(t, 2) for t in total]
 
 
 def weekly_highest_price(conn) -> float:
@@ -84,7 +62,7 @@ def weekly_lowest_price(conn) -> float:
 def average_generation(conn) -> float:
     """
     Returns the average percentage share of each power source
-    over the last 7 days from the power_reading table.
+    over the last 7 days from the power_reading table
     """
     query = """
             SELECT
