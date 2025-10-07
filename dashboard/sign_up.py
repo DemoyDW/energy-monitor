@@ -1,22 +1,8 @@
 """Script to allow users to sign up for email summaries or power outage alerts."""
 import streamlit as st
-from dotenv import load_dotenv
-from psycopg2 import connect
+from data import get_db_connection
 from psycopg2.extensions import connection
-from os import environ as ENV
 from requests import get
-
-
-@st.cache_resource
-def get_db_connection() -> connection:
-    """Connect to the postgres database managed by RDS."""
-    load_dotenv()
-
-    return connect(database=ENV["DB_NAME"],
-                   user=ENV["DB_USERNAME"],
-                   password=ENV["DB_PASSWORD"],
-                   host=ENV["DB_HOST"],
-                   port=ENV["DB_PORT"])
 
 
 def summary_subscription(conn: connection, name: str, email: str, status: bool) -> None:
