@@ -65,7 +65,7 @@ sql = "SELECT outage_id, start_time FROM outage WHERE start_time >= now() - inte
 df = read_df(sql)
 
 st.subheader("Temporal Patterns in Outages")
-st.caption("A heatmap showing when outages most frequently occur across the week")
+st.caption("A heatmap showing when outages most frequently occur across the week.")
 st.altair_chart(build_outage_time_heatmap(df), use_container_width=True)
 
 
