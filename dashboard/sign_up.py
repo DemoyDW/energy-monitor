@@ -1,4 +1,4 @@
-"""Script to allow users to si  n up for email summaries or power outage alerts."""
+"""Script to allow users to sign up for email summaries or power outage alerts."""
 import streamlit as st
 from dotenv import load_dotenv
 from psycopg2 import connect
