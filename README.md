@@ -30,7 +30,7 @@ DB_HOST={your db host}
 
 ## How to run the project
 
-### Run ocally 
+### Run locally 
 
 ### Run on the cloud
 
