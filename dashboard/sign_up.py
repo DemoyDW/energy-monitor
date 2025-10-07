@@ -91,7 +91,7 @@ def get_or_create_customer(name: str, email: str) -> int:
 
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(customer_query, (name, email))
+            cur.execute(customer_query, (name.title(), email))
 
             customer_id = cur.fetchone()[0]
 
@@ -99,7 +99,7 @@ def get_or_create_customer(name: str, email: str) -> int:
 
             customer_name = cur.fetchone()[0]
 
-        if name != customer_name:
+        if name.title() != customer_name:
             return -1
         return customer_id
 
@@ -207,7 +207,7 @@ def remove_all_user_records(name: str, email: str) -> None:
 
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(customer_id_query, (email, name))
+            cur.execute(customer_id_query, (email, name.title()))
 
             customer_id = cur.fetchone()
 
@@ -222,42 +222,44 @@ def remove_all_user_records(name: str, email: str) -> None:
         st.success("Details removed.")
 
 
-st.header("Sign up page")
+if __name__ == "__main__":
 
+    st.header("Sign up page")
 
-left, right = st.columns(2, vertical_alignment="top")
+    left, right = st.columns(2, vertical_alignment="top")
 
-with left:
-    st.header("Outage alerts")
-    name_alert = st.text_input("name", key=1)
-    email_alert = st.text_input("email", key=2)
-    postcode_alert = st.text_input("postcode")
+    with left:
+        st.header("Outage alerts")
+        name_alert = st.text_input("name", key=1)
+        email_alert = st.text_input("email", key=2)
+        postcode_alert = st.text_input("postcode")
 
-    l, r = st.columns(2)
-    with l:
-        if st.button("subscribe", key=3):
-            alert_subscription(name_alert, email_alert, postcode_alert, True)
-    with r:
-        if st.button("unsubscribe", key=4):
-            alert_subscription(name_alert, email_alert, postcode_alert, False)
+        l, r = st.columns(2)
+        with l:
+            if st.button("subscribe", key=3):
+                alert_subscription(name_alert, email_alert,
+                                   postcode_alert, True)
+        with r:
+            if st.button("unsubscribe", key=4):
+                alert_subscription(name_alert, email_alert,
+                                   postcode_alert, False)
 
+    with right:
+        st.header("Summary reports")
+        name_summary = st.text_input("name", key=5)
+        email_summary = st.text_input("email", key=6)
 
-with right:
-    st.header("Summary reports")
-    name_summary = st.text_input("name", key=5)
-    email_summary = st.text_input("email", key=6)
+        first, second = st.columns(2)
+        with first:
+            if st.button("subscribe", key=7):
+                summary_subscription(name_summary, email_summary, True)
 
-    first, second = st.columns(2)
-    with first:
-        if st.button("subscribe", key=7):
-            summary_subscription(name_summary, email_summary, True)
+        with second:
+            if st.button("unsubscribe", key=8):
+                summary_subscription(name_summary, email_summary, False)
 
-    with second:
-        if st.button("unsubscribe", key=8):
-            summary_subscription(name_summary, email_summary, False)
-
-st.header("Remove all records")
-name_removal = st.text_input("name", key=9)
-email_removal = st.text_input("email", key=10)
-if st.button("Remove records", key=11):
-    remove_all_user_records(name_removal, email_removal)
+    st.header("Remove all records")
+    name_removal = st.text_input("name", key=9)
+    email_removal = st.text_input("email", key=10)
+    if st.button("Remove records", key=11):
+        remove_all_user_records(name_removal, email_removal)
