@@ -47,10 +47,10 @@ def get_weekly_price(conn, type="highest") -> float:
     return round(price[0], 2)
 
 
-def average_generation(conn) -> float:
+def get_average_generation(conn) -> pd.DataFrame:
     """
     Returns the average percentage share of each power source
-    over the last 7 days from the power_reading table
+    over the last 7 days from the power_reading table.
     """
     query = """
             SELECT
@@ -75,7 +75,7 @@ def average_generation(conn) -> float:
     return df
 
 
-def grouped_generation_mix(conn) -> pd.DataFrame:
+def get_grouped_generation_mix(conn) -> pd.DataFrame:
     """
     Returns average generation mix over the last 7 days grouped into:
     - Renewables (wind, solar, hydro, biomass)
@@ -99,7 +99,7 @@ def grouped_generation_mix(conn) -> pd.DataFrame:
     return df
 
 
-def interconnector_net_flow(conn) -> pd.DataFrame:
+def get_interconnector_net_flow(conn) -> pd.DataFrame:
     """
     Returns the net interconnector flow over the last 7 days.
     Positive = import, Negative = export.
