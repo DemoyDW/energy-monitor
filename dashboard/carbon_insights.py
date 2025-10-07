@@ -1,12 +1,17 @@
 """Streamlit page for Carbon Insights."""
 
+from shapely.geometry import mapping
+import json
+import altair as alt
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
+import geopandas as gpd
+import pydeck as pdk
 from data import get_carbon_intensity_data
 from carbon_insights_charts import (
     create_carbon_intensity_line_graph,
-    create_generation_mix_bar_chart
+    create_generation_mix_bar_chart, prepare_choropleth_data, create_carbon_heatmap
 )
 
 # PAGE CONFIG
@@ -88,3 +93,9 @@ with st.container():
 st.plotly_chart(create_generation_mix_bar_chart(
     df, single_region), use_container_width=True)
 
+st.subheader("Average Carbon Intensity by UK Region")
+
+choropleth_df = prepare_choropleth_data(df)
+geojson_path = "data/uk_regions_adjusted.geojson"
+
+st.plotly_chart(create_carbon_heatmap(choropleth_df), use_container_width=True)

@@ -1,5 +1,8 @@
 """Charting functions for the carbon insights data for the dashboard."""
 
+from shapely.geometry import mapping
+import geopandas as gpd
+import json
 import streamlit as st
 import altair as alt
 import pandas as pd
@@ -43,3 +46,73 @@ def create_generation_mix_bar_chart(df: pd.DataFrame, region: str) -> px.bar:
                       "index": "Fuel Type",
                       region: "% Energy Produced"
     })
+
+
+@st.cache_data(show_spinner=False)
+def prepare_choropleth_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate average carbon intensity per region and normalise names."""
+    df = df.copy()
+    df["region_name"] = (
+        df["region_name"]
+        .str.strip()
+        .replace({"Gb": "GB"})
+        .str.title()
+    )
+    df["region_name"] = df["region_name"].replace({"Gb": "GB", "Gb ": "GB"})
+    df["date_time"] = pd.to_datetime(df["date_time"])
+    grouped = (
+        df.groupby("region_name", as_index=False)["carbon_intensity"]
+        .mean()
+        .round(1)
+    )
+    return grouped
+
+
+def create_carbon_heatmap(df: pd.DataFrame):
+    """Visualise carbon intensity by region using simple map tiles (no GeoJSON)."""
+
+    # Approximate centroids for each region
+    coords = {
+        "North Scotland": (58.5, -4.5),
+        "South Scotland": (56, -3.5),
+        "North West England": (54.5, -3),
+        "North East England": (54.5, -1.5),
+        "Yorkshire": (53.8, -1.2),
+        "North Wales & Merseyside": (53, -3.5),
+        "South Wales": (51.8, -3.2),
+        "West Midlands": (52.5, -2),
+        "East Midlands": (52.8, -1),
+        "East England": (52.2, 1),
+        "South West England": (51, -3.5),
+        "South England": (51.2, -1.5),
+        "London": (51.5, -0.1),
+        "South East England": (51.3, 0.8),
+        "England": (52.5, -1.5),
+        "Scotland": (57, -4),
+        "Wales": (52, -3),
+        "GB": (54, -2.5),
+    }
+
+    df["lat"] = df["region_name"].map(lambda x: coords.get(x, (54, -2))[0])
+    df["lon"] = df["region_name"].map(lambda x: coords.get(x, (54, -2))[1])
+
+    fig = px.scatter_mapbox(
+        df,
+        lat="lat",
+        lon="lon",
+        color="carbon_intensity",
+        size="carbon_intensity",
+        color_continuous_scale="RdYlGn_r",
+        size_max=40,
+        zoom=4.2,
+        mapbox_style="carto-positron",
+        hover_name="region_name",
+        hover_data={"carbon_intensity": ":.1f"},
+        title="Average Carbon Intensity by UK Region",
+    )
+
+    fig.update_layout(
+        margin=dict(r=0, t=40, l=0, b=0),
+        coloraxis_colorbar=dict(title="gCO₂/kWh")
+    )
+    return fig
