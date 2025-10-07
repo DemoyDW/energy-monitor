@@ -20,10 +20,11 @@ if df.empty:
 
 # Layout
 st.subheader("Generation Mix Over Time")
-st.caption("Shows the proportion of energy sources used to generate GB's energy over time.")
+st.caption(
+    "Shows the proportion of energy sources used to generate GB's energy over time.")
 st.altair_chart(build_generation_mix_chart(df), use_container_width=True)
 
-st.subheader("Total Generation vs Demand")
+st.subheader("Total Demand Over Time")
 st.caption("Shows how total grid demand (in MW) fluctuates over time.")
 st.altair_chart(build_demand_chart(df), use_container_width=True)
 
