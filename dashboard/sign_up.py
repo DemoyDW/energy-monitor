@@ -1,4 +1,4 @@
-"""Script to allow users to sign up for email summaries or power outage alerts."""
+"""Script to allow users to si  n up for email summaries or power outage alerts."""
 import streamlit as st
 from dotenv import load_dotenv
 from psycopg2 import connect
@@ -18,7 +18,7 @@ def get_db_connection():
                    port=ENV["DB_PORT"])
 
 
-def summary_subscription(name: str, email: str, status: bool):
+def summary_subscription(name: str, email: str, status: bool) -> None:
     """Upsert customers table to adjust summary subscription status."""
     query = """
     UPDATE customer 
@@ -50,7 +50,7 @@ def summary_subscription(name: str, email: str, status: bool):
             st.success("subscription removed")
 
 
-def alert_subscription(name: str, email: str, postcode: str, addition: bool):
+def alert_subscription(name: str, email: str, postcode: str, addition: bool) -> None:
     """Subscribe a customer for outage alerts for a postcode."""
 
     customer_id = get_or_create_customer(name, email)
@@ -69,7 +69,7 @@ def alert_subscription(name: str, email: str, postcode: str, addition: bool):
         remove_postcode_subscription(customer_id, postcode_id)
 
 
-def get_or_create_customer(name: str, email: str):
+def get_or_create_customer(name: str, email: str) -> int:
     """
     gets the postcode id or creates a postcode and returns id.
     Returns either customer id or -1 if name doesn't match email.
@@ -104,7 +104,7 @@ def get_or_create_customer(name: str, email: str):
         return customer_id
 
 
-def verify_postcode(postcode: str):
+def verify_postcode(postcode: str) -> bool:
     """Verify that a postcode is real."""
     base_url = "https://api.postcodes.io/postcodes/"
     postcode = postcode.replace(" ", "")
@@ -118,7 +118,7 @@ def verify_postcode(postcode: str):
         return False
 
 
-def get_or_create_postcode(postcode: str):
+def get_or_create_postcode(postcode: str) -> int:
     """gets the postcode id or creates a postcode and returns id."""
     query = """
     INSERT INTO postcode (postcode)
@@ -185,7 +185,7 @@ def remove_postcode_subscription(customer_id: int, postcode_id: int) -> None:
                 st.info("Alert did not exist")
 
 
-def remove_all_user_records(name: str, email: str):
+def remove_all_user_records(name: str, email: str) -> None:
     """Removes all user records from the database."""
 
     customer_id_query = """
