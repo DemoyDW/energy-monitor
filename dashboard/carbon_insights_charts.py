@@ -14,7 +14,6 @@ def create_carbon_intensity_line_graph(df: pd.DataFrame) -> alt.Chart:
     """
 
     return px.line(df, x='date_time', y='carbon_intensity', color='region_name',
-                   title="Regional Carbon Intensity over time",
                    labels={"date_time": "Date",
                            "carbon_intensity": "Carbon Intensity gCO2/kWh"}).add_hrect(
         y0=0, y1=29, line_width=0, fillcolor="green", opacity=0.4
