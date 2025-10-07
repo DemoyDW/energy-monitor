@@ -1,3 +1,4 @@
+"""Writes a email template for power outages alerts and returns a list of emails of affected customers."""
 import psycopg2
 import pandas as pd
 from load_outages import get_db_connection
@@ -47,9 +48,22 @@ def email_body():
     </html>
     """
 
-    print(email_template)
+    return email_template
+
+
+def get_customer_emails():
+    """Returns a list of customer emails who were affected by the power outages."""
+    data = get_outages_data()
+    customer_emails = []
+    customer_emails.append(data['customer_email'])
+    return customer_emails
+
+
+def main():
+    """Runs main block."""
+    email_body()
+    get_customer_emails()
 
 
 if __name__ == "__main__":
-    data = pd.DataFrame(get_outages_data())
-    email_body()
+    main()
