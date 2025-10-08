@@ -32,10 +32,6 @@ max_date = df["date_time"].max().date()
 # Default to last 3 days, or fallback to full range if dataset too short
 default_start = max(max_date - timedelta(days=3), min_date)
 
-if (max_date - min_date).days < 3:
-    st.warning(
-        f"Not enough data to show a 3-day range. Displaying available range from {min_date} to {max_date}."
-    )
 
 date_range = st.date_input(
     label="Select Date Range",
@@ -54,16 +50,20 @@ else:
 
 # REGION MULTISELECT
 region_list = sorted(df["region_name"].unique())
+region_options = ["All Regions"] + region_list
 
 with st.container():
-    multi_regions = st.multiselect(
+    selected_regions = st.multiselect(
         label="Compare multiple regions",
-        options=region_list,
-        default=region_list[:3],
-        help="Select regions to compare carbon intensity over time"
+        options=region_options,
+        default=["All Regions"],
+        help="Select specific regions or choose 'All Regions' to view national trends"
     )
 
-regional_df = df[df["region_name"].isin(multi_regions)]
+if "All Regions" in selected_regions:
+    regional_df = df.copy()
+else:
+    regional_df = df[df["region_name"].isin(selected_regions)]
 
 
 # Regional Carbon Intensity Over Time
@@ -93,9 +93,8 @@ with st.container():
 st.plotly_chart(create_generation_mix_bar_chart(
     df, single_region), use_container_width=True)
 
-st.subheader("Average Carbon Intensity by UK Region")
+# Carbon Intensity by region
+st.subheader("Average Carbon Intensity by GB Region")
 
 choropleth_df = prepare_choropleth_data(df)
-geojson_path = "data/uk_regions_adjusted.geojson"
-
 st.plotly_chart(create_carbon_heatmap(choropleth_df), use_container_width=True)

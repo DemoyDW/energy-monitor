@@ -11,7 +11,7 @@ import requests
 import pydeck as pdk
 import altair as alt
 
-# ---------------- Geocoding cache ----------------
+# Geocoding cache
 
 _CACHE = Path(".cache/postcode_geo.json")
 _CACHE.parent.mkdir(parents=True, exist_ok=True)
@@ -73,7 +73,7 @@ def geocode_with_cache(postcodes: Iterable[str]) -> Dict[str, Tuple[float, float
             _save_cache(cache)
     return {pc: cache[pc] for pc in set(normalized) if pc in cache}
 
-# ---------------- Data shaping ----------------
+# Data shaping
 
 
 def build_points_from_postcodes(df_links: pd.DataFrame) -> pd.DataFrame:
@@ -160,7 +160,7 @@ def build_hex_deck(
             [254, 173, 84],
             [209, 55, 78],
         ],
-        pickable=False,  # disables hover interactions
+        pickable=False,
     )
 
     # Scatter points (individual outages)
@@ -213,49 +213,3 @@ def build_outage_time_heatmap(outages_df: pd.DataFrame) -> alt.Chart:
     ).properties(width=600, height=300)
 
     return heatmap
-
-
-def build_avg_outage_duration_chart(outages_df: pd.DataFrame) -> alt.Chart:
-    """
-    Build a bar chart showing the average outage duration (in hours) by day of week.
-    Expects outages_df with 'start_time' and 'etr' columns.
-    """
-    if outages_df.empty:
-        return alt.Chart(pd.DataFrame({'msg': ['No data']})).mark_text().encode(text='msg')
-
-    df = outages_df.copy()
-    df['start_time'] = pd.to_datetime(df['start_time'])
-    df['etr'] = pd.to_datetime(df['etr'])
-
-    df['duration_hours'] = (df['etr'] - df['start_time']
-                            ).dt.total_seconds() / 3600
-    df = df[df['duration_hours'] > 0]
-
-    df['day_of_week'] = df['start_time'].dt.day_name()
-    day_order = ['Monday', 'Tuesday', 'Wednesday',
-                 'Thursday', 'Friday', 'Saturday', 'Sunday']
-
-    avg_durations = (
-        df.groupby('day_of_week')['duration_hours']
-        .mean()
-        .reset_index(name='avg_duration')
-    )
-
-    bar_chart = (
-        alt.Chart(avg_durations)
-        .mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4)
-        .encode(
-            x=alt.X('day_of_week:O', title='Day of Week', sort=day_order),
-            y=alt.Y('avg_duration:Q', title='Average Duration (hours)'),
-            color=alt.Color('avg_duration:Q', scale=alt.Scale(
-                scheme='viridis'), title='Hours'),
-            tooltip=[
-                alt.Tooltip('day_of_week:N', title='Day'),
-                alt.Tooltip('avg_duration:Q',
-                            title='Average Duration (hrs)', format='.2f')
-            ]
-        )
-        .properties(width=600, height=300)
-    )
-
-    return bar_chart

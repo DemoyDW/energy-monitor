@@ -18,7 +18,8 @@ def create_carbon_intensity_line_graph(df: pd.DataFrame) -> alt.Chart:
 
     return px.line(df, x='date_time', y='carbon_intensity', color='region_name',
                    labels={"date_time": "Date",
-                           "carbon_intensity": "Carbon Intensity gCO2/kWh"}).add_hrect(
+                           "carbon_intensity": "Carbon Intensity gCO2/kWh",
+                           "region_name": "Region Name"}).add_hrect(
         y0=0, y1=29, line_width=0, fillcolor="green", opacity=0.4
     ).add_hrect(
         y0=29, y1=99, line_width=0, fillcolor="green", opacity=0.2
@@ -27,7 +28,7 @@ def create_carbon_intensity_line_graph(df: pd.DataFrame) -> alt.Chart:
     ).add_hrect(
         y0=179, y1=250, line_width=0, fillcolor="red", opacity=0.2
     ).add_hrect(
-        y0=250, y1=300, line_width=0, fillcolor="red", opacity=0.4
+        y0=250, y1=400, line_width=0, fillcolor="red", opacity=0.4
     )
 
 
@@ -40,6 +41,7 @@ def create_generation_mix_bar_chart(df: pd.DataFrame, region: str) -> px.bar:
 
     df = df.groupby(["region_name"])[fuel_types].mean().round(
         2).transpose().reset_index()
+    df["index"] = df["index"].str.capitalize()
 
     return px.bar(df, x="index", y=region, title=f"Generation Mix for {region}",
                   labels={
@@ -96,6 +98,12 @@ def create_carbon_heatmap(df: pd.DataFrame):
     df["lat"] = df["region_name"].map(lambda x: coords.get(x, (54, -2))[0])
     df["lon"] = df["region_name"].map(lambda x: coords.get(x, (54, -2))[1])
 
+    hover_data = {
+        "carbon_intensity": True,
+        "lat": False,
+        "lon": False
+    }
+
     fig = px.scatter_mapbox(
         df,
         lat="lat",
@@ -107,8 +115,9 @@ def create_carbon_heatmap(df: pd.DataFrame):
         zoom=4.2,
         mapbox_style="carto-positron",
         hover_name="region_name",
-        hover_data={"carbon_intensity": ":.1f"},
-        title="Average Carbon Intensity by UK Region",
+        hover_data=hover_data,
+        title="Average Carbon Intensity by GB Region",
+        labels={"carbon_intensity": "Carbon Intensity (gCO₂/kWh)"},
     )
 
     fig.update_layout(
