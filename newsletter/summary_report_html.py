@@ -6,7 +6,7 @@ from newsletter_queries import get_db_connection, get_weekly_average, get_averag
 
 
 def get_subscribers_email(conn) -> list:
-    """Retrieve all the emails to send summary"""
+    """Retrieve all the emails to send a summary"""
 
     query = """
         SELECT customer_email 
@@ -15,19 +15,14 @@ def get_subscribers_email(conn) -> list:
     """
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(query)
-        row = cur.fetchall()
+        rows = cur.fetchall()
 
-    emails = []
-
-    for i in range(len(row)):
-        emails.append(row[i]['customer_email'])
-
-    return emails
+    return [row['customer_email'] for row in rows]
 
 
-def generate_report_html():
+def generate_report_html(conn) -> str:
     """Generate html report for email"""
-    conn = get_db_connection()
+
     tot_demand = get_weekly_average(conn)[0]
     avg_demand = get_weekly_average(conn)[1]
     avg_price = get_weekly_average(conn)[2]
@@ -92,10 +87,14 @@ def generate_report_html():
     return html
 
 
-def handler(event=None, context=None) -> dict:
-    """Generate summary email and get list of subscriber emails"""
-    summary_emails = generate_report_html()
+def handler(event=None, context=None) -> tuple:
+    """Generate summary email and retrieve list of subscriber emails"""
     conn = get_db_connection()
+    summary_emails = generate_report_html(conn)
     recipient_emails = get_subscribers_email(conn)
 
     return (summary_emails, recipient_emails)
+
+
+if __name__ == "__main__":
+    print(handler())
