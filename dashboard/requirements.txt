@@ -3,3 +3,7 @@ pydeck
 altair
 plotly
 regex
+psycopg2-binary
+dotenv
+shapely
+geopandas
