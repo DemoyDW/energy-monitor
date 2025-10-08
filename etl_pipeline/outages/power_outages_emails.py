@@ -29,9 +29,8 @@ def get_outages_data() -> dict:
         return data
 
 
-def email_body():
+def email_body(outage_data: pd.DataFrame):
     """Generate an html email with relevant postcodes for outages alerts."""
-    data = get_outages_data()
     email_data = data[['outage_id', 'postcode',
                        'start_time', 'etr', 'category']]
     table = email_data.to_html()
