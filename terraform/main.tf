@@ -78,10 +78,10 @@ resource "aws_lambda_function" "c19-energy-outage-etl-lambda" {
 
 
 resource "aws_lambda_function" "c19-energy-summary-email-lambda" {
-  function_name = "c19-energy-generation-etl-lambda"
+  function_name = "c19-energy-summary-etl-lambda"
   role          = aws_iam_role.c19-etl-lambda-role.arn
   package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.c19-energy-monitor-readings.repository_url}:latest"
+  image_uri     = "${aws_ecr_repository.c19-energy-monitor-summary.repository_url}:latest"
 
   environment {
     variables = {
@@ -343,21 +343,3 @@ resource "aws_scheduler_schedule" "c19-energy-monitor-outage-step-scheduler" {
     role_arn = aws_iam_role.c19-energy-monitor-scheduler-role.arn
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
