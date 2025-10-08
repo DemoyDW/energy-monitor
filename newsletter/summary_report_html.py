@@ -94,7 +94,3 @@ def handler(event=None, context=None) -> tuple:
     recipient_emails = get_subscribers_email(conn)
 
     return (summary_emails, recipient_emails)
-
-
-if __name__ == "__main__":
-    print(handler())
