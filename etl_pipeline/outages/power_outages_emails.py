@@ -4,22 +4,6 @@ import pandas as pd
 from load_outages import get_db_connection
 
 
-def sql_query_new_outages() -> str:
-    """Returns a SQL string to query the database and retrieve postcode and emails affected by current power outages."""
-    return """SELECT opl.outage_id, start_time, etr, c2.category, postcode, c.customer_id, c.customer_name, c.customer_email
-    FROM outage 
-    JOIN outage_postcode_link opl 
-    USING(outage_id)
-    JOIN category c2 
-    USING(category_id)
-    JOIN postcode p 
-    USING(postcode_id)
-    JOIN customer_postcode_link cpl 
-    USING(postcode_id)
-    JOIN customer c 
-    USING(customer_id)
-    WHERE outage.status 
-    LIKE 'current';"""
 
 
     def get_outages_data(conn) -> pd.DataFrame:
