@@ -59,11 +59,3 @@ def get_customer_emails():
     return customer_emails
 
 
-def main():
-    """Runs main block."""
-    email_body()
-    get_customer_emails()
-
-
-if __name__ == "__main__":
-    main()
