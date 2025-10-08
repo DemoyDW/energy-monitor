@@ -51,11 +51,8 @@ def email_body():
     return email_template
 
 
-def get_customer_emails():
+def get_customer_emails(outage_data: pd.DataFrame) -> list[str]:
     """Returns a list of customer emails who were affected by the power outages."""
-    data = get_outages_data()
-    customer_emails = []
-    customer_emails.append(data['customer_email'])
-    return customer_emails
+    return outage_data["customer_email"].tolist()
 
 
