@@ -2,6 +2,7 @@
 from psycopg2.extensions import connection
 from requests import get
 import streamlit as st
+import regex as re
 from data import get_db_connection
 
 
@@ -18,6 +19,10 @@ def summary_subscription(conn: connection, name: str, email: str, status: bool) 
     customer_id = get_or_create_customer(conn, name, email)
     if customer_id == -1:
         st.warning("name and email do not match records")
+        return
+
+    if not valid_email(email):
+        st.warning("Not a valid email")
         return
 
     with conn.cursor() as cur:
@@ -49,6 +54,11 @@ def alert_subscription(conn: connection, name: str, email: str, postcode: str, i
     if not verify_postcode(postcode):
         st.warning("Invalid postcode")
         return
+
+    if not valid_email(email):
+        st.warning("Not a valid email")
+        return
+
     postcode_id = get_or_create_postcode(conn, postcode.upper())
 
     if is_addition:
@@ -210,6 +220,10 @@ def remove_all_user_records(conn: connection, name: str, email: str) -> None:
 
         customer_id = cur.fetchone()
 
+        if not valid_email(email):
+            st.warning("Not a valid email")
+            return
+
         if not customer_id:
             st.info("No matching details recorded")
             return
@@ -221,6 +235,16 @@ def remove_all_user_records(conn: connection, name: str, email: str) -> None:
         conn.commit()
 
     st.success("Details removed.")
+
+
+def valid_email(email: str) -> str:
+    """Check if email is in the correct format."""
+
+    valid = re.match(
+        r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$", email)
+    if valid:
+        return True
+    return False
 
 
 if __name__ == "__main__":
