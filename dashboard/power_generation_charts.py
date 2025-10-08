@@ -27,6 +27,23 @@ def build_generation_mix_chart(df: pd.DataFrame) -> alt.Chart:
 
     melted['source_title'] = melted['source'].str.title()
 
+    colour_scale = alt.Scale(
+        domain=['Gas', 'Coal', 'Biomass', 'Nuclear',
+                'Hydro', 'Wind', 'Solar', 'Imports', 'Other'],
+        range=[
+            '#FF7F0E',
+            '#4B4B4B',
+            '#8C564B',
+            '#1F77B4',
+            '#17BECF',
+            '#2CA02C',
+            '#FFD700',
+            '#9467BD',
+            '#7F7F7F'
+        ]
+
+    )
+
     chart = (
         alt.Chart(melted)
         .mark_area(opacity=0.85)
@@ -40,7 +57,7 @@ def build_generation_mix_chart(df: pd.DataFrame) -> alt.Chart:
             color=alt.Color(
                 'source_title:N',
                 title='Source',
-                scale=alt.Scale(scheme='tableau10')
+                scale=colour_scale
             ),
             tooltip=[
                 alt.Tooltip('source_title:N', title='Source'),

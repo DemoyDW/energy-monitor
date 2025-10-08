@@ -56,7 +56,7 @@ with st.container():
     selected_regions = st.multiselect(
         label="Compare multiple regions",
         options=region_options,
-        default=["All Regions"],
+        default=["West Midlands", "East England"],
         help="Select specific regions or choose 'All Regions' to view national trends"
     )
 

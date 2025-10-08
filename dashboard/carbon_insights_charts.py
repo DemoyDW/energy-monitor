@@ -71,7 +71,11 @@ def prepare_choropleth_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def create_carbon_heatmap(df: pd.DataFrame):
-    """Visualise carbon intensity by region using simple map tiles (no GeoJSON)."""
+    """Visualise carbon intensity by region using simple map tiles."""
+
+    #  Removes Wales from the map.
+    df = df[~df["region_name"].isin(
+        ["Wales", "England", "Scotland", "GB"])].copy()
 
     # Approximate centroids for each region
     coords = {
@@ -82,21 +86,17 @@ def create_carbon_heatmap(df: pd.DataFrame):
         "Yorkshire": (53.8, -1.2),
         "North Wales & Merseyside": (53, -3.5),
         "South Wales": (51.8, -3.2),
-        "West Midlands": (52.5, -2),
-        "East Midlands": (52.8, -1),
+        "West Midlands": (52.5, -2.1),
+        "East Midlands": (52.8, -1.2),
         "East England": (52.2, 1),
         "South West England": (51, -3.5),
         "South England": (51.2, -1.5),
         "London": (51.5, -0.1),
-        "South East England": (51.3, 0.8),
-        "England": (52.5, -1.5),
-        "Scotland": (57, -4),
-        "Wales": (52, -3),
-        "GB": (54, -2.5),
+        "South East England": (51.3, 0.8)
     }
 
-    df["lat"] = df["region_name"].map(lambda x: coords.get(x, (54, -2))[0])
-    df["lon"] = df["region_name"].map(lambda x: coords.get(x, (54, -2))[1])
+    df["lat"] = df["region_name"].map(lambda x: coords.get(x, (60, -3.5))[0])
+    df["lon"] = df["region_name"].map(lambda x: coords.get(x, (60, -3.5))[1])
 
     hover_data = {
         "carbon_intensity": True,
@@ -110,15 +110,17 @@ def create_carbon_heatmap(df: pd.DataFrame):
         lon="lon",
         color="carbon_intensity",
         size="carbon_intensity",
+        center={"lat": 54.8, "lon": -3.5},
         color_continuous_scale="RdYlGn_r",
         size_max=40,
-        zoom=4.2,
-        mapbox_style="carto-positron",
+        zoom=4,
+        mapbox_style="carto-darkmatter",
         hover_name="region_name",
         hover_data=hover_data,
-        title="Average Carbon Intensity by GB Region",
         labels={"carbon_intensity": "Carbon Intensity (gCO₂/kWh)"},
     )
+
+    fig.update_traces(marker=dict(size=25))
 
     fig.update_layout(
         margin=dict(r=0, t=40, l=0, b=0),
