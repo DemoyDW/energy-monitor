@@ -2,6 +2,7 @@
 
 from transform_carbon import transform_generation_mix, transform_carbon_intensity_data
 from datetime import datetime
+from copy import deepcopy
 
 
 def test_transform_generation_mix(generation_mix):
@@ -18,20 +19,16 @@ def test_transform_generation_mix(generation_mix):
 def test_transform_carbon_intensity_data(generation_mix):
     """Test that transform_carbon_intensity_data works as intended on the API's data."""
 
+    generation_mix_2 = deepcopy(generation_mix)
+    generation_mix_2[-1]["perc"] = 79.2
+    generation_mix_2[-2]["perc"] = 20.8
+
     carbon_data = [{'regionid': 1, 'dnoregion': 'Scottish Hydro Electric Power Distribution', 'shortname': 'North Scotland',
                     'intensity': {'forecast': 0, 'index': 'very low'},
                     'generationmix': generation_mix},
                    {'regionid': 2, 'dnoregion': 'SP Distribution', 'shortname': 'South Scotland',
                     'intensity': {'forecast': 1, 'index': 'very low'},
-                    'generationmix': [{'fuel': 'biomass', 'perc': 0.7},
-                                      {'fuel': 'coal', 'perc': 0},
-                                      {'fuel': 'imports', 'perc': 0},
-                                      {'fuel': 'gas', 'perc': 0},
-                                      {'fuel': 'nuclear', 'perc': 18.9},
-                                      {'fuel': 'other', 'perc': 0},
-                                      {'fuel': 'hydro', 'perc': 0},
-                                      {'fuel': 'solar', 'perc': 1.2},
-                                      {'fuel': 'wind', 'perc': 79.2}]}]
+                    'generationmix': generation_mix_2}]
 
     transform = transform_carbon_intensity_data(carbon_data)
 
@@ -39,4 +36,4 @@ def test_transform_carbon_intensity_data(generation_mix):
     assert isinstance(transform[0][0], datetime)
     assert isinstance(transform[1][0], datetime)
     assert transform[0][1:] == [0, 1, 0, 0, 0, 0, 0, 0, 0, 98.9, 1.1]
-    assert transform[1][1:] == [1, 2, 0, 0, 0.7, 18.9, 0, 0, 0, 79.2, 1.2]
+    assert transform[1][1:] == [1, 2, 0, 0, 0, 0, 0, 0, 0, 79.2, 20.8]

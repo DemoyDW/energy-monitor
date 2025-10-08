@@ -1,8 +1,26 @@
 """A test script for power generation data extract script."""
 
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta, timezone
 from extract_power import get_utc_settlement_time, convert_utc_time_string
+import pytest
+
+
+@pytest.mark.parametrize(("test_times", "converted_times"),
+                         [(["14:45:15+00:00", "15:15:15+00:00"],
+                           ["14:45:15Z", "15:15:15Z"]),
+                          (["23:45:59+00:00", "00:15:59+00:00"],
+                           ["23:45:59Z", "00:15:59Z"]),
+                          (["00:00:00+00:00", "23:59:59+00:00"],
+                           ["00:00:00Z", "23:59:59Z"])
+                          ])
+def test_convert_utc_time_string(test_times, converted_times):
+    """
+    Testing the basic funcionality of the utc time
+    string conversion for the Elexon API.
+    """
+
+    assert convert_utc_time_string(test_times) == converted_times
 
 
 def test_utc_settlement_time():
@@ -39,14 +57,3 @@ def test_utc_settlement_time_iso_format():
         except ValueError:
             success = False
         assert success
-
-
-def test_convert_utc_time_string():
-    """
-    Testing the basic funcionality of the utc time
-    string conversion for the Elexon API.
-    """
-
-    test_time = ["14:45:15+00:00", "15:15:15+00:00"]
-
-    assert convert_utc_time_string(test_time) == ["14:45:15Z", "15:15:15Z"]
