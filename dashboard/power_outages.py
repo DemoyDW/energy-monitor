@@ -25,7 +25,7 @@ st.caption("Visualising GB outage locations aggregated by postcode.")
 map_time_window = st.radio(
     "Select Time Range for Map",
     options=["Last 24 Hours", "Last Week"],
-    index=0,
+    index=1,
     horizontal=True,
 )
 

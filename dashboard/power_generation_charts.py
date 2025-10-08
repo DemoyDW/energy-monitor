@@ -146,7 +146,7 @@ def build_demand_chart(df: pd.DataFrame) -> alt.Chart:
 
     chart = (
         alt.Chart(df)
-        .mark_line(opacity=0.9, color='#ff7675', strokeWidth=2)
+        .mark_line(opacity=0.9, color='#d9b731ff', strokeWidth=2)
         .encode(
             x=alt.X('date_time:T', title='Time'),
             y=alt.Y('demand:Q', title='Electricity Demand (MW)'),

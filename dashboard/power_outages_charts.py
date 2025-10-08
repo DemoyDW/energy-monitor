@@ -208,7 +208,7 @@ def build_outage_time_heatmap(outages_df: pd.DataFrame) -> alt.Chart:
         x=alt.X('hour:O', title='Hour of Day'),
         y=alt.Y('day_of_week:O', sort=day_order, title='Day of Week'),
         color=alt.Color('outage_count:Q', scale=alt.Scale(
-            scheme='viridis'), title='Outages'),
+            scheme='plasma'), title='Outages'),
         tooltip=['day_of_week', 'hour', 'outage_count']
     ).properties(width=600, height=300)
 

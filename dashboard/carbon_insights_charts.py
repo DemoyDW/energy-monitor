@@ -16,16 +16,26 @@ def create_carbon_intensity_line_graph(df: pd.DataFrame) -> alt.Chart:
     over time for a dataframe of select regions.
     """
 
-    return px.line(df, x='date_time', y='carbon_intensity', color='region_name',
-                   labels={"date_time": "Date",
-                           "carbon_intensity": "Carbon Intensity gCO2/kWh",
-                           "region_name": "Region Name"}).add_hrect(
-        y0=0, y1=99, line_width=0, fillcolor="#00FF00", opacity=.35
-    ).add_hrect(
-        y0=99, y1=179, line_width=0, fillcolor="#F6FF00", opacity=.35
-    ).add_hrect(
-        y0=179, y1=400, line_width=0, fillcolor="#FF0000", opacity=.4
-    )
+    fig = px.line(df, x='date_time', y='carbon_intensity', color='region_name',
+                  labels={"date_time": "Date",
+                          "carbon_intensity": "Carbon Intensity gCO2/kWh",
+                          # Very Low
+                          "region_name": "Region Name"})
+
+    fig.add_hrect(y0=0,   y1=29,  line_width=0,
+                  fillcolor="#00FF00", opacity=.6, layer="below")
+    fig.add_hrect(y0=29,  y1=99,  line_width=0,
+                  fillcolor="#7EFB55", opacity=.5, layer="below")  # Low
+    fig.add_hrect(y0=99,  y1=179, line_width=0,
+                  fillcolor="#F6FF00", opacity=.5, layer="below")  # Moderate
+    fig.add_hrect(y0=179, y1=250, line_width=0,
+                  fillcolor="#FF9900", opacity=.5, layer="below")  # High
+    fig.add_hrect(y0=250, y1=400, line_width=0,
+                  fillcolor="#FF0000", opacity=.5, layer="below")  # Very High
+
+    fig.update_traces(line=dict(width=2), opacity=1)
+
+    return fig
 
 
 @st.cache_data

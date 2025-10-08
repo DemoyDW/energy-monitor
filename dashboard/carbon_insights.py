@@ -61,7 +61,7 @@ with st.container():
     )
 
 if "All Regions" in selected_regions:
-    regional_df = df.copy()
+    regional_df = df
 else:
     regional_df = df[df["region_name"].isin(selected_regions)]
 
@@ -71,25 +71,27 @@ st.subheader("Regional Carbon Intensity Over Time")
 st.caption(
     "Displays how carbon intensity varies across regions within the selected period.")
 
-st.markdown(
-    """
-    <div style="display:flex; justify-content:center; gap:50px; align-items:center; font-weight:bold; font-size:15px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-            <div style="width:18px; height:18px; background-color:#008000; border-radius:3px;"></div>
-            <span style="color:white;">Low (0–100)</span>
+st.markdown("### Carbon Intensity Levels")
+legend_html = """
+    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center;">
+            <div style="width: 20px; height: 20px; background-color:#00FF00; margin-right: 6px;"></div> Very Low (0–29)
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-            <div style="width:18px; height:18px; background-color:#FFD700; border-radius:3px;"></div>
-            <span style="color:white;">Moderate (100–180)</span>
+        <div style="display: flex; align-items: center;">
+            <div style="width: 20px; height: 20px; background-color:#66FF33; margin-right: 6px;"></div> Low (30–99)
         </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-            <div style="width:18px; height:18px; background-color:#B22222; border-radius:3px;"></div>
-            <span style="color:white;">High (180+)</span>
+        <div style="display: flex; align-items: center;">
+            <div style="width: 20px; height: 20px; background-color:#F6FF00; margin-right: 6px;"></div> Moderate (100–179)
+        </div>
+        <div style="display: flex; align-items: center;">
+            <div style="width: 20px; height: 20px; background-color:#FF9900; margin-right: 6px;"></div> High (180–250)
+        </div>
+        <div style="display: flex; align-items: center;">
+            <div style="width: 20px; height: 20px; background-color:#FF0000; margin-right: 6px;"></div> Very High (251+)
         </div>
     </div>
-    """,
-    unsafe_allow_html=True
-)
+    """
+st.markdown(legend_html, unsafe_allow_html=True)
 
 if not regional_df.empty:
     st.plotly_chart(create_carbon_intensity_line_graph(

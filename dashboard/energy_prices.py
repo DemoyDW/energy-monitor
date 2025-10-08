@@ -23,6 +23,6 @@ st.subheader("Price vs Demand")
 st.caption("Shows how price (£/MWh) tracks changes in grid demand (MW) over time.")
 st.altair_chart(build_price_vs_demand_dual_axis(df), use_container_width=True)
 
-st.subheader("Average Price by Day of Week")
-st.caption("Highlights typical daily trends in average market price.")
+st.subheader("Temporal Patterns in Electricity Prices")
+st.caption("A heatmap showing how average electricity prices fluctuate throughout the week and across different hours of the day.")
 st.altair_chart(build_avg_price_by_day_chart(df), use_container_width=True)
