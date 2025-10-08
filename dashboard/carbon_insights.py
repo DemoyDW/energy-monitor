@@ -71,6 +71,26 @@ st.subheader("Regional Carbon Intensity Over Time")
 st.caption(
     "Displays how carbon intensity varies across regions within the selected period.")
 
+st.markdown(
+    """
+    <div style="display:flex; justify-content:center; gap:50px; align-items:center; font-weight:bold; font-size:15px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:18px; height:18px; background-color:#008000; border-radius:3px;"></div>
+            <span style="color:white;">Low (0–100)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:18px; height:18px; background-color:#FFD700; border-radius:3px;"></div>
+            <span style="color:white;">Moderate (100–180)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="width:18px; height:18px; background-color:#B22222; border-radius:3px;"></div>
+            <span style="color:white;">High (180+)</span>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 if not regional_df.empty:
     st.plotly_chart(create_carbon_intensity_line_graph(
         regional_df), use_container_width=True)

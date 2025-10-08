@@ -6,7 +6,7 @@ st.markdown("""
     <style>
 
         [data-testid="stSidebar"] {
-            background-color: #d9b731ff;
+            background-color: #fec70f;
         }
 
         [data-testid="stSidebar"] * {

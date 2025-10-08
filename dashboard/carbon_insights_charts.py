@@ -12,7 +12,7 @@ import plotly.express as px
 @st.cache_data
 def create_carbon_intensity_line_graph(df: pd.DataFrame) -> alt.Chart:
     """
-    Create a line graph that displays carbon intensity 
+    Create a line graph that displays carbon intensity
     over time for a dataframe of select regions.
     """
 
@@ -20,15 +20,11 @@ def create_carbon_intensity_line_graph(df: pd.DataFrame) -> alt.Chart:
                    labels={"date_time": "Date",
                            "carbon_intensity": "Carbon Intensity gCO2/kWh",
                            "region_name": "Region Name"}).add_hrect(
-        y0=0, y1=29, line_width=0, fillcolor="green", opacity=0.4
+        y0=0, y1=99, line_width=0, fillcolor="#00FF00", opacity=.35
     ).add_hrect(
-        y0=29, y1=99, line_width=0, fillcolor="green", opacity=0.2
+        y0=99, y1=179, line_width=0, fillcolor="#F6FF00", opacity=.35
     ).add_hrect(
-        y0=99, y1=179, line_width=0, fillcolor="#FFBF00", opacity=0.2
-    ).add_hrect(
-        y0=179, y1=250, line_width=0, fillcolor="red", opacity=0.2
-    ).add_hrect(
-        y0=250, y1=400, line_width=0, fillcolor="red", opacity=0.4
+        y0=179, y1=400, line_width=0, fillcolor="#FF0000", opacity=.4
     )
 
 
@@ -46,8 +42,9 @@ def create_generation_mix_bar_chart(df: pd.DataFrame, region: str) -> px.bar:
     return px.bar(df, x="index", y=region, title=f"Generation Mix for {region}",
                   labels={
                       "index": "Fuel Type",
-                      region: "% Energy Produced"
-    })
+                      region: "% Energy Produced"},
+                  color_discrete_sequence=['#d9b731']
+                  )
 
 
 @st.cache_data(show_spinner=False)
@@ -79,7 +76,7 @@ def create_carbon_heatmap(df: pd.DataFrame):
 
     # Approximate centroids for each region
     coords = {
-        "North Scotland": (58.5, -4.5),
+        "North Scotland": (57.5, -4.5),
         "South Scotland": (56, -3.5),
         "North West England": (54.5, -3),
         "North East England": (54.5, -1.5),
