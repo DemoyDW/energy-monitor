@@ -22,11 +22,25 @@ def sql_query_new_outages() -> str:
     LIKE 'current';"""
 
 
-def get_outages_data() -> dict:
-    """Returns a dictionary of current outages, postcodes and customers affected by the power disruptions."""
-    with get_db_connection() as conn:
-        data = pd.read_sql_query(sql_query_new_outages(), conn)
-        return data
+    def get_outages_data(conn) -> pd.DataFrame:
+        """Returns a dataframe of current outages, postcodes and customers affected by the power disruptions."""
+        
+        query = """SELECT opl.outage_id, start_time, etr, c2.category, postcode, c.customer_id, c.customer_name, c.customer_email
+    FROM outage 
+    JOIN outage_postcode_link opl 
+    USING(outage_id)
+    JOIN category c2 
+    USING(category_id)
+    JOIN postcode p 
+    USING(postcode_id)
+    JOIN customer_postcode_link cpl 
+    USING(postcode_id)
+    JOIN customer c 
+    USING(customer_id)
+    WHERE outage.status 
+    LIKE 'current';"""
+
+        return pd.read_sql_query(query, conn)
 
 
 def email_body(outage_data: pd.DataFrame):
