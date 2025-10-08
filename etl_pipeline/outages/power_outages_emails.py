@@ -4,12 +4,10 @@ import pandas as pd
 from load_outages import get_db_connection
 
 
+def get_outages_data(conn) -> pd.DataFrame:
+    """Returns a dataframe of current outages, postcodes and customers affected by the power disruptions."""
 
-
-    def get_outages_data(conn) -> pd.DataFrame:
-        """Returns a dataframe of current outages, postcodes and customers affected by the power disruptions."""
-        
-        query = """SELECT opl.outage_id, start_time, etr, c2.category, postcode, c.customer_id, c.customer_name, c.customer_email
+    query = """SELECT opl.outage_id, start_time, etr, c2.category, postcode, c.customer_id, c.customer_name, c.customer_email
     FROM outage 
     JOIN outage_postcode_link opl 
     USING(outage_id)
@@ -24,7 +22,7 @@ from load_outages import get_db_connection
     WHERE outage.status 
     LIKE 'current';"""
 
-        return pd.read_sql_query(query, conn)
+    return pd.read_sql_query(query, conn)
 
 
 def email_body(outage_data: pd.DataFrame):
@@ -51,5 +49,3 @@ def email_body(outage_data: pd.DataFrame):
 def get_customer_emails(outage_data: pd.DataFrame) -> list[str]:
     """Returns a list of customer emails who were affected by the power outages."""
     return outage_data["customer_email"].tolist()
-
-
