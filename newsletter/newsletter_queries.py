@@ -13,7 +13,7 @@ def get_db_connection():
     return connect(database=ENV["DB_NAME"],
                    user=ENV["DB_USERNAME"],
                    password=ENV["DB_PASSWORD"],
-                   host=ENV["DB_IP"],
+                   host=ENV["DB_HOST"],
                    port=ENV["DB_PORT"])
 
 
