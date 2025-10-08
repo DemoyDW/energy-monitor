@@ -2,3 +2,4 @@ streamlit
 pydeck
 altair
 plotly
+regex
