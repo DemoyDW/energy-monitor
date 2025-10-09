@@ -119,9 +119,6 @@ def build_hex_deck(
     center_lng = float(df_points["lng"].mean()
                        ) if df_points["lng"].notna().any() else -3.0
 
-    # Enable Mapbox tiles
-    pdk.settings.mapbox_api_key = os.getenv("MAPBOX_API_KEY", "")
-
     # Camera view
     view = pdk.ViewState(
         latitude=center_lat,
@@ -233,7 +230,8 @@ def build_outage_time_heatmap(outages_df: pd.DataFrame) -> alt.Chart:
         y=alt.Y('day_of_week:O', sort=day_order, title='Day of Week'),
         color=alt.Color('outage_count:Q', scale=alt.Scale(
             scheme='plasma'), title='Outages'),
-        tooltip=['day_of_week', 'hour', 'outage_count']
+        tooltip=[alt.Tooltip('day_of_week', title="Day of Week"), alt.Tooltip(
+            'hour', title="Hour"), alt.Tooltip('outage_count', title="Outage Count")]
     ).properties(width=600, height=300)
 
     return heatmap

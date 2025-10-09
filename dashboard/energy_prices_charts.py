@@ -22,7 +22,8 @@ def build_price_vs_demand_dual_axis(df: pd.DataFrame) -> alt.LayerChart:
             x=alt.X('date_time:T', title='Time'),
             y=alt.Y('demand:Q', title='Demand (MW)',
                     axis=alt.Axis(titleColor='#ff7675')),
-            tooltip=['date_time:T', 'demand:Q']
+            tooltip=[alt.Tooltip('date_time:T', title='Date'),
+                     alt.Tooltip('demand:Q', title='Demand')]
         )
     )
 
@@ -34,7 +35,8 @@ def build_price_vs_demand_dual_axis(df: pd.DataFrame) -> alt.LayerChart:
             x='date_time:T',
             y=alt.Y('price:Q', title='Price (£/MWh)',
                     axis=alt.Axis(titleColor='#f1c40f')),
-            tooltip=['date_time:T', 'price:Q']
+            tooltip=[alt.Tooltip('date_time:T', title='Date'),
+                     alt.Tooltip('price:Q', title='Price')]
         )
     )
 

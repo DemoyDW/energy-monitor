@@ -16,7 +16,7 @@ from carbon_insights_charts import (
 
 # PAGE CONFIG
 st.set_page_config(page_title="Carbon Insights", layout="wide")
-st.header("Carbon Insights")
+st.title("Carbon Insights")
 
 
 # LOAD DATA

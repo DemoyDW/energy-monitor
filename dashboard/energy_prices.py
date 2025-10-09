@@ -20,7 +20,7 @@ if df.empty:
     st.stop()
 
 st.subheader("Price vs Demand")
-st.caption("Shows how price (£/MWh) tracks changes in grid demand (MW) over time.")
+st.caption("Shows how Price (£/MWh) tracks changes in grid Demand (MW) over time.")
 st.altair_chart(build_price_vs_demand_dual_axis(df), use_container_width=True)
 
 st.subheader("Temporal Patterns in Electricity Prices")

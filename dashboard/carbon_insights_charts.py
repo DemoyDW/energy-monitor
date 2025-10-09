@@ -121,6 +121,7 @@ def create_carbon_heatmap(df: pd.DataFrame):
         color_continuous_scale="RdYlGn_r",
         size_max=40,
         zoom=4,
+        opacity=0.7,
         mapbox_style="carto-darkmatter",
         hover_name="region_name",
         hover_data=hover_data,

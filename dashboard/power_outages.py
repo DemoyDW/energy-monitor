@@ -1,4 +1,4 @@
-"""Streamlit page: Power Outages — GB Hexagon Map (Dark Mode)."""
+"""Streamlit page: Power Outages — GB Hexagon Map."""
 
 import streamlit as st
 import pydeck as pdk
