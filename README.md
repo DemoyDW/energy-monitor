@@ -63,8 +63,12 @@ DB_PORT={your db port}
 5. Run terraform apply on the terraform stage 2 file.
 6. Run the dashboard from the ecs tasks public ip address using port 8501 e.g ```{public ip address}:8501```.
 
-## Architecture
+
+## Diagrams 
+For more information about the diagrams, view the [diagrams README](diagrams/README.md)
+
+### Architecture
 ![Architecture diagram](diagrams/architecture_diagram.png)
 
-## ERD
+### ERD
 ![ERD](diagrams/energy-monitor-erd.png)
