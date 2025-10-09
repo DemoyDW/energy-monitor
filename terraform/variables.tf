@@ -26,6 +26,10 @@ variable "VPC_PUBLIC_SUBNET_3" {
     type = string
 }
 
+variable "DB_HOST" {
+  type = string
+}
+
 variable "DB_NAME" {
   type = string
 }
