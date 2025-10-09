@@ -61,7 +61,7 @@ DB_PORT={your db port}
 3. Run the files schema.sql then seed.sql on your RDS database.
 4. Using the subsequent dockerfiles, build and push the images to the ecr for the following: dashboard, power outages ETL, power readings ETL, summary email generation script and alert generation script.
 5. Run terraform apply on the terraform stage 2 file.
-6. Run the dashboard from the ecs tasks public ip address using port 8501 e.g {public ip address}:8501.
+6. Run the dashboard from the ecs tasks public ip address using port 8501 e.g ```{public ip address}:8501```.
 
 ## Architecture
 ![Architecture diagram](diagrams/architecture_diagram.png)
