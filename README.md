@@ -65,7 +65,7 @@ DB_PORT={your db port}
 
 
 ## Diagrams 
-For more information about the diagrams, view the [diagrams README](terraform/README.md)
+For more information about the diagrams, view the [diagrams README](diagrams/README.md)
 
 ### Architecture
 ![Architecture diagram](diagrams/architecture_diagram.png)
