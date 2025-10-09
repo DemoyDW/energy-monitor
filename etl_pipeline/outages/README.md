@@ -40,7 +40,9 @@ The purpose of the load script is now to pull the other two scripts together and
 
 Install the requirements.
 
+```sh
 pip3 install -r requirements.txt
+```
 
 ## Next set up the .env with the required credentials for the RDS
 
