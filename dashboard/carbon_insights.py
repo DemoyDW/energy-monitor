@@ -16,7 +16,7 @@ from carbon_insights_charts import (
 
 # PAGE CONFIG
 st.set_page_config(page_title="Carbon Insights", layout="wide")
-st.header("Carbon Insights")
+st.title("Carbon Insights")
 
 
 # LOAD DATA
@@ -32,10 +32,6 @@ max_date = df["date_time"].max().date()
 # Default to last 3 days, or fallback to full range if dataset too short
 default_start = max(max_date - timedelta(days=3), min_date)
 
-if (max_date - min_date).days < 3:
-    st.warning(
-        f"Not enough data to show a 3-day range. Displaying available range from {min_date} to {max_date}."
-    )
 
 date_range = st.date_input(
     label="Select Date Range",
@@ -54,22 +50,49 @@ else:
 
 # REGION MULTISELECT
 region_list = sorted(df["region_name"].unique())
+region_options = ["All Regions"] + region_list
 
 with st.container():
-    multi_regions = st.multiselect(
+    selected_regions = st.multiselect(
         label="Compare multiple regions",
-        options=region_list,
-        default=region_list[:3],
-        help="Select regions to compare carbon intensity over time"
+        options=region_options,
+        default=["West Midlands", "East England"],
+        help="Select specific regions or choose 'All Regions' to view national trends"
     )
 
-regional_df = df[df["region_name"].isin(multi_regions)]
+if "All Regions" in selected_regions:
+    regional_df = df
+else:
+    regional_df = df[df["region_name"].isin(selected_regions)]
 
 
 # Regional Carbon Intensity Over Time
 st.subheader("Regional Carbon Intensity Over Time")
 st.caption(
     "Displays how carbon intensity varies across regions within the selected period.")
+
+st.markdown("### Carbon Intensity Levels")
+st.text(" ")
+legend_html = """
+    <div style="display: flex; justify-content: space-between;">
+        <div style="display: flex; align-items: center;">
+            <div style="width: 20px; height: 20px; background-color:#00FF00; margin-right: 6px;"></div> Very Low (0–29)
+        </div>
+        <div style="display: flex; align-items: center;">
+            <div style="width: 20px; height: 20px; background-color:#66FF33; margin-right: 6px;"></div> Low (30–99)
+        </div>
+        <div style="display: flex; align-items: center;">
+            <div style="width: 20px; height: 20px; background-color:#F6FF00; margin-right: 6px;"></div> Moderate (100–179)
+        </div>
+        <div style="display: flex; align-items: center;">
+            <div style="width: 20px; height: 20px; background-color:#FF9900; margin-right: 6px;"></div> High (180–250)
+        </div>
+        <div style="display: flex; align-items: center;">
+            <div style="width: 20px; height: 20px; background-color:#FF0000; margin-right: 6px;"></div> Very High (251+)
+        </div>
+    </div>
+    """
+st.markdown(legend_html, unsafe_allow_html=True)
 
 if not regional_df.empty:
     st.plotly_chart(create_carbon_intensity_line_graph(
@@ -93,9 +116,8 @@ with st.container():
 st.plotly_chart(create_generation_mix_bar_chart(
     df, single_region), use_container_width=True)
 
-st.subheader("Average Carbon Intensity by UK Region")
+# Carbon Intensity by region
+st.subheader("Average Carbon Intensity by GB Region")
 
 choropleth_df = prepare_choropleth_data(df)
-geojson_path = "data/uk_regions_adjusted.geojson"
-
 st.plotly_chart(create_carbon_heatmap(choropleth_df), use_container_width=True)

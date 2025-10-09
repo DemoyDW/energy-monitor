@@ -22,7 +22,8 @@ def build_price_vs_demand_dual_axis(df: pd.DataFrame) -> alt.LayerChart:
             x=alt.X('date_time:T', title='Time'),
             y=alt.Y('demand:Q', title='Demand (MW)',
                     axis=alt.Axis(titleColor='#ff7675')),
-            tooltip=['date_time:T', 'demand:Q']
+            tooltip=[alt.Tooltip('date_time:T', title='Date'),
+                     alt.Tooltip('demand:Q', title='Demand')]
         )
     )
 
@@ -34,7 +35,8 @@ def build_price_vs_demand_dual_axis(df: pd.DataFrame) -> alt.LayerChart:
             x='date_time:T',
             y=alt.Y('price:Q', title='Price (£/MWh)',
                     axis=alt.Axis(titleColor='#f1c40f')),
-            tooltip=['date_time:T', 'price:Q']
+            tooltip=[alt.Tooltip('date_time:T', title='Date'),
+                     alt.Tooltip('price:Q', title='Price')]
         )
     )
 
@@ -44,7 +46,8 @@ def build_price_vs_demand_dual_axis(df: pd.DataFrame) -> alt.LayerChart:
 
 def build_avg_price_by_day_chart(df: pd.DataFrame) -> alt.Chart:
     """
-    Bar chart showing average electricity price by day of the week.
+    Heatmap showing average electricity price by day of the week and hour.
+    Similar style to the outage temporal heatmap.
     """
     if df.empty:
         return alt.Chart(pd.DataFrame({'msg': ['No data']})).mark_text().encode(text='msg')
@@ -52,25 +55,34 @@ def build_avg_price_by_day_chart(df: pd.DataFrame) -> alt.Chart:
     df = df.copy()
     df['date_time'] = pd.to_datetime(df['date_time'])
     df['day_of_week'] = df['date_time'].dt.day_name()
+    df['hour'] = df['date_time'].dt.hour
 
-    # Ensure day order
+    # Ensure day order (Monday → Sunday)
     order = ['Monday', 'Tuesday', 'Wednesday',
              'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-    # Group and average
-    avg_price = df.groupby('day_of_week')[
-        'price'].mean().reindex(order).reset_index()
+    # Average price by day and hour
+    avg_price = (
+        df.groupby(['day_of_week', 'hour'])['price']
+        .mean()
+        .reset_index()
+    )
 
     chart = (
         alt.Chart(avg_price)
-        .mark_bar(color='#f1c40f', cornerRadiusTopLeft=4, cornerRadiusTopRight=4)
+        .mark_rect()
         .encode(
-            x=alt.X('day_of_week:N', sort=order, title='Day of Week'),
-            y=alt.Y('price:Q', title='Average Price (£/MWh)'),
+            x=alt.X('hour:O', title='Hour of Day'),
+            y=alt.Y('day_of_week:N', sort=order, title='Day of Week'),
+            color=alt.Color(
+                'price:Q',
+                title='Avg Price (£/MWh)',
+                scale=alt.Scale(scheme='plasma')
+            ),
             tooltip=[
                 alt.Tooltip('day_of_week:N', title='Day'),
-                alt.Tooltip(
-                    'price:Q', title='Average Price (£/MWh)', format='.2f')
+                alt.Tooltip('hour:O', title='Hour'),
+                alt.Tooltip('price:Q', title='Avg Price (£/MWh)', format='.2f')
             ]
         )
         .properties(width=700, height=300)

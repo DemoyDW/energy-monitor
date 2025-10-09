@@ -1,0 +1,22 @@
+[theme]
+base = "dark"
+primaryColor = "#d9b731ff"
+backgroundColor = "#171f2bff"
+secondaryBackgroundColor = "#21262D"
+textColor = "#ffffffff"
+font = "sans serif"
+
+[theme.colors]
+success = "#2ECC71"
+warning = "#d9b731ff"
+error = "#E74C3C"
+info = "#3498DB"
+
+[theme.chart]
+colorScale = [
+  "#2ECC71",
+  "#F1C40F",
+  "#E74C3C",
+  "#3498DB",
+  "#9B59B6"
+]
