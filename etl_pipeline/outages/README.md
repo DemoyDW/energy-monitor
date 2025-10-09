@@ -1,8 +1,8 @@
 # Description
 
-This pipeline automates the process of collecting, cleaning and sorting UK power outage data from National Grid into a PostgresSQL RDS database. It's an ETL pipeline that extracts livedata from a public CSV, transforming it into a structured relational format and loading it into AWS RDS, ready for analysis and visualisation.
+This pipeline automates the process of collecting, cleaning and sorting UK power outage data from the National Grid into a PostgreSQL RDS database. It's an ETL pipeline that extracts live data from a public CSV, transforming it into a structured relational format and loading it into AWS RDS, ready for analysis and visualisation.
 
-The workflow is containerised using Docker and deployed as an AWS Lambda function. This allows for scalability, serveless data ingestion without any manual intervention. And this data is then fed directly into the dashboard, powering the various insights for outages across the nation.
+The workflow is containerised using Docker and deployed as an AWS Lambda function. This allows for scalable serveless data ingestion without any manual intervention. And this data is then fed directly into the dashboard, powering the various insights for outages across the nation.
 
 ## Extract Script
 We extract the data from the National Grid website which is in the form of a CSV, then we store it in a tmp local folder (as AWS Lambda can't read local CSVs).
@@ -32,7 +32,7 @@ On top of this we made sure to change the timezone to UK standard time, so we ha
 
 ## Load Script
 
-The purpose of the load script is now to pull the other two scripts together and upload the data to RDS. And to this we made sure to establish the connection to the database. Write the SQL queries to then upload the data. And these functions were all pulled together using an orchestration function. And finally we used a Lambda handler function so it can be called by the Lambda.
+The purpose of the load script is now to pull the other two scripts together and upload the data to RDS. And to do this we made sure to establish the connection to the database. Write the SQL queries to then upload the data. And these functions were all pulled together using an orchestration function. And finally we used a Lambda handler function so it can be called by the Lambda.
 
 # Usage
 
