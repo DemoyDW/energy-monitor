@@ -1,6 +1,6 @@
 # Description
 
-This pipeline automates the process of collecting, cleaning and sotring UK power outage data from National Grid into a PostgresSQL RDS database. It's an ETL pipeline that extracts livedata from a public CSV, transforming it into a structured relational format and loading it into AWS RDS, ready for analysis and visualisation.
+This pipeline automates the process of collecting, cleaning and sorting UK power outage data from National Grid into a PostgresSQL RDS database. It's an ETL pipeline that extracts livedata from a public CSV, transforming it into a structured relational format and loading it into AWS RDS, ready for analysis and visualisation.
 
 The workflow is containerised using Docker and deployed as an AWS Lambda function. This allows for scalability, serveless data ingestion without any manual intervention. And this data is then fed directly into the dashboard, powering the various insights for outages across the nation.
 
