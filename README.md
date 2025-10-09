@@ -48,16 +48,20 @@ DB_PORT={your db port}
 
 1. Add the environment setup details to a local postgres database in your .env file.
 2. Run the files schema.sql then seed.sql on your local database.
-3. Run the handler function from load_outages in the outages subdirectory and load_main in the power_readings subdirectory
-4. Run the dashboard.py file using streamlit to view the visualisations.
+3. Run the handler function from load_outages.py in the outages subdirectory and load_main.py in the power_readings subdirectory
+4. Run the dashboard.py file using streamlit to view the visualisations and sign up.
+5. Run the handler function from summary_report_html.py to view the theoretical email and recipients for the summary emails
+6. Run the handler function from {} to view the theoretical power outage alerts and the recipients.
+7. Repeat step 3 to add more entries to the database.
 
 ### Run on the cloud
 
 1. Add setup details to .env file and terraform.tfvars file. 
 2. Run terraform apply on the terraform stage 1 file.
 3. Run the files schema.sql then seed.sql on your RDS database.
-4. Using the subsequent dockerfiles, build and push the images to the ecr for the following: dashboard, power outages ETL, power readings ETL, summary email generation script and alert generation script
+4. Using the subsequent dockerfiles, build and push the images to the ecr for the following: dashboard, power outages ETL, power readings ETL, summary email generation script and alert generation script.
 5. Run terraform apply on the terraform stage 2 file.
+6. Run the dashboard from the ecs tasks public ip address using port 8501 e.g {public ip address}:8501.
 
 ## Architecture
 ![Architecture diagram](diagrams/architecture_diagram.png)
