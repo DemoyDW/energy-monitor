@@ -25,7 +25,7 @@ DB_HOST={your db host}
 ### Run locally 
 
 1. Add the environment setup details to your local postgres database in a .env file.
-2. run ```streamlit run dashboard.py``` in the terminal.
+2. Run ```streamlit run dashboard.py``` in the terminal.
 
 ### Run on the cloud
 
