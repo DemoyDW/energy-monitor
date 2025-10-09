@@ -72,8 +72,9 @@ st.caption(
     "Displays how carbon intensity varies across regions within the selected period.")
 
 st.markdown("### Carbon Intensity Levels")
+st.text(" ")
 legend_html = """
-    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+    <div style="display: flex; justify-content: space-between;">
         <div style="display: flex; align-items: center;">
             <div style="width: 20px; height: 20px; background-color:#00FF00; margin-right: 6px;"></div> Very Low (0–29)
         </div>

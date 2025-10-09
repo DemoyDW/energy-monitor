@@ -52,7 +52,7 @@ def build_generation_mix_chart(df: pd.DataFrame) -> alt.Chart:
             y=alt.Y(
                 'generation_mw:Q',
                 stack='normalize',
-                title='Share of Total Generation'
+                title='% Share of Total Generation'
             ),
             color=alt.Color(
                 'source_title:N',

@@ -142,7 +142,6 @@ def build_hex_deck(
 
     # Fill in missing fields to avoid tooltip errors
     df_points = df_points.fillna({
-        "outage_id": "N/A",
         "status": "Unknown",
         "postcode": "N/A"
     })
