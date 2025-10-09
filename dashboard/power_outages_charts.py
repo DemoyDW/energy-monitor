@@ -103,7 +103,7 @@ def build_hex_deck(
     map_style="mapbox://styles/mapbox/dark-v10",
     opacity=0.6
 ):
-    """Return a pydeck.Deck object for outage hex map (no tooltips)."""
+    """Return a pydeck.Deck object for outage hex map (with tooltips)."""
     if df_points.empty:
         view = pdk.ViewState(latitude=54.5, longitude=-3.0, zoom=5, pitch=45)
         osm = pdk.Layer(
@@ -119,7 +119,7 @@ def build_hex_deck(
     center_lng = float(df_points["lng"].mean()
                        ) if df_points["lng"].notna().any() else -3.0
 
-    # Enable Mapbox tiles (fallback to OSM if not set)
+    # Enable Mapbox tiles
     pdk.settings.mapbox_api_key = os.getenv("MAPBOX_API_KEY", "")
 
     # Camera view
@@ -139,6 +139,13 @@ def build_hex_deck(
         max_zoom=19,
         tile_size=256
     )
+
+    # Fill in missing fields to avoid tooltip errors
+    df_points = df_points.fillna({
+        "outage_id": "N/A",
+        "status": "Unknown",
+        "postcode": "N/A"
+    })
 
     # Hex layer (aggregated)
     hex_layer = pdk.Layer(
@@ -160,7 +167,7 @@ def build_hex_deck(
             [254, 173, 84],
             [209, 55, 78],
         ],
-        pickable=False,
+        pickable=False,  # disable pick on hex layer
     )
 
     # Scatter points (individual outages)
@@ -171,17 +178,34 @@ def build_hex_deck(
         get_radius=250,
         get_fill_color=[255, 255, 255, 160],
         opacity=0.35,
-        pickable=False,
+        pickable=True,  # enable hover interaction
         get_line_color=[0, 0, 0],
         line_width_min_pixels=0.5,
         parameters={"depthTest": False}
     )
 
-    # Return Deck without tooltip
+    # Tooltip template
+    tooltip = {
+        "html": (
+            "<b>Outage ID:</b> {outage_id}<br/>"
+            "<b>Status:</b> {status}<br/>"
+            "<b>Postcode:</b> {postcode}"
+        ),
+        "style": {
+            "backgroundColor": "rgba(20, 20, 20, 0.85)",
+            "color": "white",
+            "fontSize": "13px",
+            "padding": "8px",
+            "borderRadius": "5px"
+        }
+    }
+
+    # Return Deck with tooltip
     return pdk.Deck(
         layers=[osm, hex_layer, scatter],
         initial_view_state=view,
-        map_style=None
+        map_style=None,
+        tooltip=tooltip
     )
 
 
