@@ -51,13 +51,87 @@ def transform_df_to_html(df: pd.DataFrame) -> str:
 def generate_report_html(energy_data: dict) -> str:
     """Generate html report for email"""
 
+    css = """
+    <style>
+        <div class="logo-container">
+            <img src="plugged_in_logo.png" alt="Plugged In Logo" class="logo">
+        </div>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        h1 {
+            color: #ffffff;
+            background-color: #171f2b;
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+
+        h2 {
+            color: #171f2b;
+            border-left: 5px solid #d9b731;
+            padding-left: 10px;
+            margin-top: 40px;
+        }
+
+        ul, li {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        table, th, td {
+            border: 1px solid #cccccc;
+        }
+
+        th {
+            background-color: #d9b731;
+            color: #171f2b;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .logo-container {
+            text-align: right;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            height: 60px;
+        }
+
+    </style>
+
+    """
+
     html = f"""
     <html>
     <head>
         <title>Weekly Energy Report</title>
+        {css}
     </head>
-    <body>
 
+    <body>
     <h1>Weekly Energy Report</h1>
 
     <h2>Summary Statistics</h2>
@@ -99,7 +173,5 @@ def handler(event=None, context=None) -> tuple:
     """Generate summary email and retrieve list of subscriber emails"""
     conn = get_db_connection()
     data = get_all_data(conn)
-    summary_emails = generate_report_html(data)
-    recipient_emails = get_subscribers_email(conn)
 
-    return (summary_emails, recipient_emails)
+    return {"email_body": generate_report_html(data), "customer_emails": get_subscribers_email(conn)}
