@@ -147,6 +147,8 @@ def build_hex_deck(
         "postcode": "N/A"
     })
 
+    df_points["status"] = df_points["status"].astype(str).str.title()
+
     # Hex layer (aggregated)
     hex_layer = pdk.Layer(
         "HexagonLayer",
@@ -167,7 +169,7 @@ def build_hex_deck(
             [254, 173, 84],
             [209, 55, 78],
         ],
-        pickable=False,  # disable pick on hex layer
+        pickable=False
     )
 
     # Scatter points (individual outages)
@@ -178,7 +180,7 @@ def build_hex_deck(
         get_radius=250,
         get_fill_color=[255, 255, 255, 160],
         opacity=0.35,
-        pickable=True,  # enable hover interaction
+        pickable=True,
         get_line_color=[0, 0, 0],
         line_width_min_pixels=0.5,
         parameters={"depthTest": False}
@@ -187,7 +189,6 @@ def build_hex_deck(
     # Tooltip template
     tooltip = {
         "html": (
-            "<b>Outage ID:</b> {outage_id}<br/>"
             "<b>Status:</b> {status}<br/>"
             "<b>Postcode:</b> {postcode}"
         ),
