@@ -42,6 +42,8 @@ DB_PASSWORD={your db password}
 DB_PORT={your db port}
 ```
 
+For more information about the terraform setup, view the [terraform README](terraform/README.md)
+
 ## How to run the project
 
 ### Run locally 
