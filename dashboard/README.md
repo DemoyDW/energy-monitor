@@ -29,5 +29,5 @@ DB_HOST={your db host}
 
 ### Run on the cloud
 
-1. Run the dashboard from the ecs tasks public ip address using port 8501 e.g {public ip address}:8501.
+1. Run the dashboard from the ecs tasks public ip address using port 8501 e.g ```{public ip address}:8501```.
 
