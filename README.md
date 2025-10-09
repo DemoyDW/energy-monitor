@@ -15,7 +15,7 @@ The project provides value in three main ways:
 
 ## Environment set up
 
-### Database connection 
+### Database connection .env
 
 ```
 DB_NAME={your db name}
@@ -25,7 +25,7 @@ DB_PORT={your db port}
 DB_HOST={your db host}
 ```
 
-### Terraform
+### Terraform.tfvars
 
 ```
 ACCESS_KEY={your aws access key}
