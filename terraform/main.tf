@@ -5,7 +5,6 @@ provider "aws" {
 }
 
 # IAM role for Lambda execution
-
 data "aws_iam_policy_document" "assume_role" {
   statement {
     effect = "Allow"
@@ -24,8 +23,7 @@ resource "aws_iam_role" "c19-etl-lambda-role" {
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
-# Lambda Function 
-
+# Lambda Functions 
 resource "aws_lambda_function" "c19-energy-generation-etl-lambda" {
   function_name = "c19-energy-generation-etl-lambda"
   role          = aws_iam_role.c19-etl-lambda-role.arn
@@ -74,9 +72,6 @@ resource "aws_lambda_function" "c19-energy-outage-etl-lambda" {
 
 }
 
-
-
-
 resource "aws_lambda_function" "c19-energy-summary-email-lambda" {
   function_name = "c19-energy-summary-etl-lambda"
   role          = aws_iam_role.c19-etl-lambda-role.arn
@@ -101,6 +96,7 @@ resource "aws_lambda_function" "c19-energy-summary-email-lambda" {
 
 }
 
+# Postgres Database
 resource "aws_db_instance" "c19-energy-monitor-rds" {
   allocated_storage    = 10
   identifier           = "c19-energy-monitor-rds"
@@ -115,8 +111,7 @@ resource "aws_db_instance" "c19-energy-monitor-rds" {
   publicly_accessible = true
 }
 
-# IAM ROLE FOR TASK EXECUTION
-
+# IAM Role for task execution
 resource "aws_iam_role" "c19-energy-task-execution-role" {
   name = "c19-energy-task-execution-role"
   assume_role_policy = jsonencode({
@@ -133,7 +128,7 @@ resource "aws_iam_role" "c19-energy-task-execution-role" {
 })
 }
 
-# DASHBOARD ECS TASK DEFINITION
+# Dashboard ECS task definition
 resource "aws_ecs_task_definition" "c19-energy-monitor-dashboard" {
   family = "c19-energy-monitor-dashboard"
   requires_compatibilities = ["FARGATE"]
@@ -181,6 +176,7 @@ resource "aws_ecs_task_definition" "c19-energy-monitor-dashboard" {
   }
 }
 
+# IAM role for ECS 
 resource "aws_iam_role" "c19_energy_ecs_service_role" {
   name = "c19_energy_ecs_service_role"
 
@@ -196,6 +192,7 @@ resource "aws_iam_role" "c19_energy_ecs_service_role" {
   })
 }
 
+# RDS security group
 resource "aws_security_group" "c19-rds-sg" {
     name = "c19-energy-monitor-rds-sg"
     description = "Allows inbound traffic into the rds"
@@ -203,6 +200,7 @@ resource "aws_security_group" "c19-rds-sg" {
   
 }
 
+# VPC traffic rules
 resource "aws_vpc_security_group_ingress_rule" "allow_all_traffic" {
     security_group_id = aws_security_group.c19-rds-sg.id
     cidr_ipv4         = "0.0.0.0/0"
@@ -219,11 +217,14 @@ resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
   to_port           = var.DB_PORT
 }
 
+# Database subnet group
 resource "aws_db_subnet_group" "c19-subnet-groups" {
   name = "c19-energy-monitor-subnet-groups"
   subnet_ids = [var.VPC_PUBLIC_SUBNET_1, var.VPC_PUBLIC_SUBNET_2, var.VPC_PUBLIC_SUBNET_3]
 }
 
+
+# ECRs for Lambdas and ECS service
 resource "aws_ecr_repository" "c19-energy-monitor-readings" {
   name = "c19-energy-monitor-readings"
   image_tag_mutability = "MUTABLE"
@@ -262,7 +263,7 @@ resource "aws_ecr_repository" "c19-energy-monitor-dashboard" {
 
 
 
-# eventbridge iam role for schedulers
+# IAM role and policy for Eventbridge schedulers
 resource "aws_iam_role" "c19-energy-monitor-scheduler-role" {
   name = "c19-energy-monitor-scheduler-role"
   assume_role_policy = jsonencode({
@@ -279,11 +280,11 @@ resource "aws_iam_role" "c19-energy-monitor-scheduler-role" {
   })
 }
 
-# eventbridge iam policy for schedulers
 resource "aws_iam_role_policy_attachment" "c19-energy-monitor-scheduler-role-attach" {
   role       = aws_iam_role.c19-energy-monitor-scheduler-role.name
   policy_arn = aws_iam_policy.c19-energy-monitor-scheduler-policy.arn
 }
+
 
 resource "aws_iam_policy" "c19-energy-monitor-scheduler-policy" {
   name = "c19-Scheduler-Lambda-Policy"
@@ -305,7 +306,9 @@ resource "aws_iam_policy" "c19-energy-monitor-scheduler-policy" {
     })
 }
 
-# eventbridge scheduler for carbon/power reading ETL
+
+
+# Eventbridge schedulers
 resource "aws_scheduler_schedule" "c19-energy-monitor-reading-etl-scheduler" {
   name        = "c19-energy-monitor-reading-ETL-scheduler"
   description = "Run reading ETL job every 30 minutes at 5 past the hour."
@@ -326,7 +329,7 @@ resource "aws_scheduler_schedule" "c19-energy-monitor-reading-etl-scheduler" {
 
 
 
-# eventbridge scheduler for outage ETL (will be step function assigned, not Lambda)
+# Eventbridge scheduler for outage ETL (will be step function assigned, not Lambda)
 resource "aws_scheduler_schedule" "c19-energy-monitor-outage-step-scheduler" {
   name        = "c19-energy-monitor-outage-ETL-scheduler"
   description = "Run outage ETL job every 5."
@@ -342,4 +345,219 @@ resource "aws_scheduler_schedule" "c19-energy-monitor-outage-step-scheduler" {
     arn      = aws_lambda_function.c19-energy-outage-etl-lambda.arn
     role_arn = aws_iam_role.c19-energy-monitor-scheduler-role.arn
   }
+}
+
+
+
+
+
+# IAM role and policy for step functions
+data "aws_iam_policy_document" "c19-energy-step-function-role-policy-assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["states.amazonaws.com"]
+    }
+
+    actions = [
+      "sts:AssumeRole",
+    ]
+  }
+}
+
+resource "aws_iam_role" "c19-energy-step-function-role" {
+  name               = "c19-energy-step-function-role"
+  assume_role_policy = data.aws_iam_policy_document.c19-energy-step-function-role-policy-assume_role.json
+}
+
+data "aws_iam_policy_document" "c19-energy-step-function-role-policy" {
+
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "lambda:InvokeFunction"
+    ]
+
+    resources = ["${aws_lambda_function.c19-energy-outage-etl-lambda.arn}", 
+                "${aws_lambda_function.c19-energy-summary-email-lambda.arn}"]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ses:SendBulkEmail",
+      "ses:SendEmail"
+    ]
+
+    resources = ["*"]
+  }
+
+}
+
+
+resource "aws_iam_policy" "c19-energy-step-function-policy" {
+  name        = "c19-energy-step-function-policy"
+  description = "Policy for the bulk email-sending step functions."
+  policy      = data.aws_iam_policy_document.c19-energy-step-function-role-policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "c19-energy-step-function-policy-attachment" {
+  role       = aws_iam_role.c19-energy-step-function-role.name
+  policy_arn = aws_iam_policy.c19-energy-step-function-policy.arn
+}
+
+resource "aws_sfn_state_machine" "c19-energy-summary-email-sf" {
+  name     = "c19-energy-summary-email-sf"
+  role_arn = aws_iam_role.c19-energy-step-function-role.arn
+  definition = <<EOF
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Lambda Invoke",
+  "States": {
+    "Lambda Invoke": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "arn:aws:lambda:eu-west-2:129033205317:function:c19-energy-summary-etl-lambda:$LATEST",
+        "Payload": "{% $states.input %}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "SendBulkEmail"
+    },
+    "SendBulkEmail": {
+      "Type": "Task",
+      "Arguments": {
+        "BulkEmailEntries": [
+          {
+            "Destination": {
+              "ToAddresses": "{% $states.input.customer_emails %}"
+            }
+          }
+        ],
+        "DefaultContent": {
+          "Template": {
+            "TemplateContent": {
+              "Subject": "Energy Summary",
+              "Html": "{% $states.input.email_body %}"
+            },
+            "TemplateData": "{}"
+          }
+        },
+        "FromEmailAddress": "sl-coaches@proton.me"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:sesv2:sendBulkEmail",
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}
+EOF
+}
+
+
+resource "aws_sfn_state_machine" "c19-energy-outage-email-sf" {
+  name     = "c19-energy-outage-email-sf"
+  role_arn = aws_iam_role.c19-energy-step-function-role.arn
+  definition = <<EOF
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Step Functions StartExecution",
+  "States": {
+    "Step Functions StartExecution": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::states:startExecution.sync:2",
+      "Arguments": {
+        "StateMachineArn": "arn:aws:states:REGION:ACCOUNT_ID:stateMachine:STATE_MACHINE_NAME",
+        "Input": {
+          "StatePayload": "Hello from Step Functions!",
+          "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}"
+        }
+      },
+      "Next": "Lambda Invoke"
+    },
+    "Lambda Invoke": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "arn:aws:lambda:eu-west-2:129033205317:function:c19-energy-outage-etl-lambda:$LATEST",
+        "Payload": "{% $states.input %}"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Choice"
+    },
+    "Choice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "SendBulkEmail",
+          "Condition": "{% {\n  \"Condition\": \"{% $count($states.input.customer_emails) > 0 %}\"\n} %}"
+        }
+      ],
+      "Default": "Pass"
+    },
+    "SendBulkEmail": {
+      "Type": "Task",
+      "Arguments": {
+        "BulkEmailEntries": [
+          {
+            "Destination": {
+              "ToAddresses": "{% $states.input.customer_emails %}"
+            }
+          }
+        ],
+        "DefaultContent": {
+          "Template": {
+            "TemplateContent": {
+              "Subject": "Power Outage Alert in your area!!",
+              "Html": "{% $states.input.email_body %}"
+            },
+            "TemplateData": " "
+          }
+        },
+        "FromEmailAddress": "sl-coaches@proton.me"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:sesv2:sendBulkEmail",
+      "End": true
+    },
+    "Pass": {
+      "Type": "Pass",
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}
+EOF
 }
