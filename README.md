@@ -5,7 +5,7 @@
 This project aims to collate data from various sources and present it in an accessible and easily understandable format. 
 
 
-## usage
+## Usage
 
 The project provides value in three main ways: 
 
