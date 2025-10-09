@@ -1,4 +1,4 @@
-# Description of folder
+# Description
 
 The power_reading folder contains all the scripts required to build and run the power readings pipeline. This pipeline gathers data from multiple sources, including NESO for carbon intensity data and ELEXON for pricing, demand, power, and energy generation information.
 
