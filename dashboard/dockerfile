@@ -13,7 +13,7 @@ RUN pip install -r requirements.txt
 #Copy over dashboard files
 COPY dashboard.py .
 
-COPY power_outages_signup.py .
+COPY power_outages.py .
 
 COPY energy_prices.py .
 
@@ -21,7 +21,17 @@ COPY power_generation.py .
 
 COPY carbon_insights.py .
 
-COPY utils ./utils
+COPY sign_up.py .
+
+COPY data.py .
+
+COPY power_generation_charts.py .
+
+COPY power_outages_charts.py .
+
+COPY energy_prices_charts.py . 
+
+COPY carbon_insights_charts.py .
 
 #Run the dashboard
 CMD streamlit run dashboard.py
