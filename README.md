@@ -2,8 +2,7 @@
 
 ## Description of the project
 
-This project aims to collate data from various sources and present it in an accessible and easily understandable format. 
-
+This project aims to collate energy data from various sources and present it in an accessible and easily understandable format. 
 
 ## Usage
 
