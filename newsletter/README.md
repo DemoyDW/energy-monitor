@@ -1,4 +1,4 @@
-# Description of folder
+# Description 
 
 The newsletter folder contains several scripts that connect to the database and retrieve relevant weekly summary data. This data is then used to generate a HTML email containing all the key insights, which is sent to subscribed members.
 
