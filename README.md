@@ -50,7 +50,7 @@ For more information about the terraform setup, view the [terraform README](terr
 
 1. Add the environment setup details to a local postgres database in your .env file.
 2. Run the files schema.sql then seed.sql on your local database.
-3. Run the handler function from load_outages.py in the [outages subdirectory](etl_pipeline/outages/README.md) and load_main.py in the [power_readings](etl_pipeline/power_readings/README.md) subdirectory
+3. Run the handler function from load_outages.py in the [outages subdirectory](etl_pipeline/outages/README.md) and load_main.py in the [power_readings subdirectory](etl_pipeline/power_readings/README.md).
 4. Run the dashboard.py file using streamlit to view the visualisations and sign up.
 5. Run the handler function from summary_report_html.py to view the theoretical email and recipients for the summary emails
 6. Run the handler function from {} to view the theoretical power outage alerts and the recipients.
