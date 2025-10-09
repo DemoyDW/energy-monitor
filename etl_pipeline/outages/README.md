@@ -96,4 +96,4 @@ docker tag outages-lambda:latest <account-id>.dkr.ecr.eu-west-2.amazonaws.com/ou
 docker push <account-id>.dkr.ecr.eu-west-2.amazonaws.com/outages-lambda:latest
 ```
 
-Now the dashboard will be up and running on AWS.
+Now the pipeline will be up and running on AWS.
