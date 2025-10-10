@@ -122,7 +122,7 @@ def create_carbon_heatmap(df: pd.DataFrame):
         size_max=40,
         zoom=4,
         opacity=0.7,
-        mapbox_style="carto-darkmatter",
+        mapbox_style="open-street-map",
         hover_name="region_name",
         hover_data=hover_data,
         labels={"carbon_intensity": "Carbon Intensity (gCO₂/kWh)"},
