@@ -17,14 +17,14 @@ def make_sample_raw():
             "Incident ID": "INCD-1",
             "Start Time": "2025-10-01T08:00:00",
             "ETR": "2025-10-01T12:00:00",
-            "Category": "LV GENERIC",          # expected -> 2
+            "Category": "LV GENERIC",
             "Postcodes": "AB1 2CD, AB1 2EF"
         },
         {
             "Incident ID": "INCD-2",
             "Start Time": "2025-09-30T10:00:00",
-            "ETR": "",                         # missing -> historical
-            "Category": "HV DAMAGE",           # expected -> 9
+            "ETR": "",
+            "Category": "HV DAMAGE",
             "Postcodes": "XY9 8ZZ"
         }
     ])
@@ -49,9 +49,9 @@ def test_outage_table_columns_and_status():
     # Category IDs (based on the mapping used in the transform)
     # If the mapping ever changes in code, update these two expected values.
     assert outage_df.loc[outage_df["outage_id"] ==
-                         "INCD-1", "category_id"].iloc[0] == 2  # LV GENERIC
+                         "INCD-1", "category_id"].iloc[0] == 2
     assert outage_df.loc[outage_df["outage_id"] ==
-                         "INCD-2", "category_id"].iloc[0] == 9  # HV DAMAGE
+                         "INCD-2", "category_id"].iloc[0] == 9
 
     # Missing ETR should mark as historical
     assert outage_df.loc[outage_df["outage_id"] ==
