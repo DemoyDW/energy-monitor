@@ -1,8 +1,11 @@
 # Terraform Set-up
 This terraform script will set up all resources required for deploying the energy monitor Project.
-To setup initial RDS and ECRs run main.tf.
+ 
 ## Usage
-1. Run main.tf with bash
+1. To setup initial RDS and ECRs, Terraform apply the main.tf and ecr.tf files (or create the ecr with matching details using the AWS UI). 
+2. Populate the database by following the instructions in the database folder.
+3. Upload the container images of the power/carbon ETL, outage ETL/email, newsletter, and dashboard. 
+4. Finally, Terraform Apply and the remaining infrastructure will be created. 
 # Inside terraform folder
 terraform apply
 ## Requirements
