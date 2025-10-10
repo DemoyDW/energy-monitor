@@ -13,6 +13,10 @@ RUN pip install -r requirements.txt
 #Copy over dashboard files
 COPY dashboard.py .
 
+COPY image.png .
+
+COPY .streamlit ./.streamlit
+
 COPY power_outages.py .
 
 COPY energy_prices.py .
