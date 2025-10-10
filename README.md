@@ -52,7 +52,7 @@ For more information about the terraform setup, view the [terraform README](terr
 3. Run the handler function from load_outages.py in the [outages subdirectory](etl_pipeline/outages/README.md) and load_main.py in the [power_readings subdirectory](etl_pipeline/power_readings/README.md).
 4. Run the dashboard.py file using streamlit to view the visualisations and sign up.
 5. Run the handler function from summary_report_html.py to view the theoretical email and recipients for the summary emails
-6. Run the handler function from {} to view the theoretical power outage alerts and the recipients.
+6. Run the handler function from power_outages_emails.py to view the theoretical power outage alerts and the recipients.
 7. Repeat step 3 to add more entries to the database.
 
 ### Run on the cloud
