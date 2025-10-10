@@ -29,6 +29,3 @@ def generate_outage_csv(save_path: str | None = None) -> pd.DataFrame:
             print("Skipping local save:", repr(e))
 
     return df
-
-
-generate_outage_csv()
