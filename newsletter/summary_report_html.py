@@ -53,9 +53,6 @@ def generate_report_html(energy_data: dict) -> str:
 
     css = """
     <style>
-        <div class="logo-container">
-            <img src="plugged_in_logo.png" alt="Plugged In Logo" class="logo">
-        </div>
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
@@ -136,12 +133,12 @@ def generate_report_html(energy_data: dict) -> str:
 
     <h2>Summary Statistics</h2>
     <ul>
-        <li><strong>Total Demand:</strong> {energy_data["total_demand"]}</li>
-        <li><strong>Average Demand:</strong> {energy_data["avg_demand"]}</li>
-        <li><strong>Average Energy Price:</strong> {energy_data["avg_price"]}</li>
-        <li><strong>Highest Energy Price:</strong> {energy_data["highest_price"]}</li>
-        <li><strong>Lowest Energy Price:</strong> {energy_data["lowest_price"]}</li>
-        <li><strong>National Avg. Carbon Intensity:</strong> {energy_data["national_carbon_avg"]}</li>
+        <li><strong>Total Demand:</strong> {energy_data["total_demand"]} MW</li>
+        <li><strong>Average Demand:</strong> {energy_data["avg_demand"]} MW</li>
+        <li><strong>Average Energy Price:</strong> £{energy_data["avg_price"]}</li>
+        <li><strong>Highest Energy Price:</strong> £{energy_data["highest_price"]}</li>
+        <li><strong>Lowest Energy Price:</strong> £{energy_data["lowest_price"]}</li>
+        <li><strong>National Avg. Carbon Intensity:</strong> {energy_data["national_carbon_avg"]} gCO2/kWh</li>
     </ul>
 
     <h2>Generation (Average % over 7 Days)</h2>
@@ -150,18 +147,15 @@ def generate_report_html(energy_data: dict) -> str:
     <h2>Grouped Generation (Average % over 7 Days)</h2>
     {transform_df_to_html(energy_data["grouped_generation"])}
 
-    <h2>Average Carbon Intensity by Region</h2>
-    {transform_df_to_html(energy_data["avg_carbon"])}
-
-    <h2>Best & Worst Regions (Carbon Intensity)</h2>
+    <h2>Best & Worst Regions (Carbon Intensity gCO2/kWh)</h2>
     {transform_df_to_html(energy_data["best_worst"])}
 
     <h2>Interconnector Net Flows</h2>
     {transform_df_to_html(energy_data["inter_flow"])}
 
     <h2>Import/Export Summary</h2>
-    <li><strong>Total Import:</strong> {energy_data["total_flow"][0]}</li>
-    <li><strong>Total Export:</strong> {energy_data["total_flow"][1]}</li>
+    <li><strong>Total Import:</strong> {energy_data["total_flow"][0]} MW</li>
+    <li><strong>Total Export:</strong> {energy_data["total_flow"][1]} MW</li>
 
     </body>
     </html>
@@ -175,3 +169,7 @@ def handler(event=None, context=None) -> tuple:
     data = get_all_data(conn)
 
     return {"email_body": generate_report_html(data), "customer_emails": get_subscribers_email(conn)}
+
+
+if __name__ == "__main__":
+    print(handler())
