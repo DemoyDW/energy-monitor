@@ -14,6 +14,10 @@ These scripts organise the visualisations, filters and insights on each dashboar
 
 ## Usage
 
+### Installing Dependencies
+
+`pip install -r requirements.txt`
+
 ### Environment set up
 
 #### Database connection .env
