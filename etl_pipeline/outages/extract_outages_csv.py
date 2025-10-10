@@ -1,5 +1,5 @@
+"""Script with functions to extract the outage data from the National Grid site."""
 
-from os import error
 import requests
 import pandas as pd
 from io import StringIO
