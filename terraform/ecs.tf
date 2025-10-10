@@ -21,13 +21,13 @@ resource "aws_ecs_task_definition" "c19-energy-monitor-dashboard" {
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu = "1024"
-  memory = "3072"
+  memory = "5120"
   execution_role_arn = aws_iam_role.c19-energy-task-execution-role.arn
   container_definitions = jsonencode([
     {
         name = "c19-energy-monitor-dashboard"
         image = "${aws_ecr_repository.c19-energy-monitor-dashboard.repository_url}:latest"
-        memory = 128
+        memory = 5120
         essential = true,
         portMappings = [
           {
@@ -36,15 +36,6 @@ resource "aws_ecs_task_definition" "c19-energy-monitor-dashboard" {
             protocol      = "tcp"
           }
         ],
-        logConfiguration = {
-                logDriver = "awslogs"
-                "options": {
-                    awslogs-group = "/ecs/c19-energy-monitor-dashboard"
-                    awslogs-stream-prefix = "ecs"
-                    awslogs-create-group = "true"
-                    awslogs-region = "eu-west-2"
-                }
-            }
         environment = [
             {name = "DB_NAME", value = var.DB_NAME},
             {name = "DB_USERNAME", value = var.DB_USERNAME},
@@ -77,4 +68,51 @@ resource "aws_iam_role" "c19_energy_ecs_service_role" {
       }
     }]
   })
+}
+
+# Policy attachment for ECS
+resource "aws_iam_role_policy_attachment" "c19-energy-monitor-ecs-policy-attachment" {
+  role = aws_iam_role.c19-energy-task-execution-role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"   
+}
+
+# Dashboard security group
+resource "aws_security_group" "c19-energy-monitor-dashboard-sg" {
+  name = "c19-energy-monitor-dashboard-sg"
+  description = "Allows all internet access to the streamlit dashboard"
+  vpc_id = var.VPC_ID
+
+  ingress {
+    from_port   = 8501
+    to_port     = 8501
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# ECS service 
+resource "aws_ecs_service" "c19-energy-tracker-ecs-service" {
+  name = "c19-energy-tracker-ecs-service"
+  cluster = "arn:aws:ecs:eu-west-2:129033205317:cluster/c19-ecs-cluster"
+  task_definition = aws_ecs_task_definition.c19-energy-monitor-dashboard.arn
+  desired_count = "1"
+
+  network_configuration {
+    subnets = [var.VPC_PUBLIC_SUBNET_1, var.VPC_PUBLIC_SUBNET_2, var.VPC_PUBLIC_SUBNET_3]
+    security_groups = [aws_security_group.c19-energy-monitor-dashboard-sg.id]
+    assign_public_ip = true
+  }
+
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE"
+    weight            = 100
+    base              = 1
+  }
 }
