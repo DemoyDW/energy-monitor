@@ -58,11 +58,8 @@ For more information about the terraform setup, view the [terraform README](terr
 ### Run on the cloud
 
 1. Add setup details to .env file and terraform.tfvars file. 
-2. Run terraform apply on the terraform stage 1 file.
-3. Run the files schema.sql then seed.sql on your RDS database.
-4. Using the subsequent dockerfiles, build and push the images to the ecr for the following: dashboard, power outages ETL, power readings ETL, summary email generation script and alert generation script.
-5. Run terraform apply on the terraform stage 2 file.
-6. Run the dashboard from the ecs tasks public ip address using port 8501 e.g ```{public ip address}:8501```.
+2. Follow the instructions in the [Terraform readme](terraform/README.md).
+3. Run the dashboard from the ecs tasks public ip address using port 8501 e.g ```{public ip address}:8501```.
 
 
 ## Diagrams 
