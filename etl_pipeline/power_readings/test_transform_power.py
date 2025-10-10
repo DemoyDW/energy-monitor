@@ -1,6 +1,7 @@
 """
 Tests for transform script of power readings
 """
+
 from datetime import datetime, timedelta, timezone
 import pandas as pd
 from transform_power import calculate_avg_demand_last_settlement, summarise_energy_generation
