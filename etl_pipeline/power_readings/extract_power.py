@@ -63,6 +63,7 @@ def get_energy_pricing(start_time: str, end_time: str) -> dict:
 
     response = get(url, timeout=20)
     response.raise_for_status()
+
     data = response.json()['data']
 
     return pd.DataFrame(data)['price']

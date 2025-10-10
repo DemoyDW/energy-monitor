@@ -8,6 +8,8 @@ def extract_carbon_intensity_data(start_time: str, end_time: str) -> list[dict]:
 
     url = f"https://api.carbonintensity.org.uk/regional/intensity/{start_time}/{end_time}"
     response = get(url)
+    response.raise_for_status()
+
     data = response.json()["data"][0]["regions"]
 
     return data
