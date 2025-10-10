@@ -36,7 +36,7 @@ def email_body(outage_data: pd.DataFrame):
     </head>
     <body>
         <h1>⚠️ Power Outage Alert</h1>
-        <h2>We are currently experiencing power outages in your area!</h2>
+        <h2>There are currently power outages in your area!</h2>
         {table}
     </body>
     </html>
