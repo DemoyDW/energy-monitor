@@ -1,50 +1,72 @@
 # Energy Monitor     
 
-## Problem Statement
+## Description of the project
 
-Energy – how we create, store, and use it – is a topic that is of wide public interest. People have a financial interest (they pay for it), an ethical interest (how we generate power has huge impacts on climate change), and an interest based purely in curiosity.
+This project aims to collate energy data from various sources and present it in an accessible and easily understandable format. 
 
-While data on energy generation/usage in the UK is widely available, it’s also inaccessible and fragmented, with each of several different organisations managing different aspects and sharing their own datasets.
+## Usage
+
+The project provides value in three main ways: 
+
+- Power outage email alerts which provide live updates on current power outages.
+- Email reports which provide regular summaries on power generation, pricing, demand and carbon intensity .
+- An interactive dashboard which provide visualisations on power generation, pricing, power outages and carbon intensity. Also allowing users to sign up for either of the emailing services.
+
+## Environment set up
+
+### Database connection .env
+
+```
+DB_NAME={your db name}
+DB_USERNAME={your db username}
+DB_PASSWORD={your db password}
+DB_PORT={your db port}
+DB_HOST={your db host}
+```
+
+### Terraform.tfvars
+
+```
+ACCESS_KEY={your aws access key}
+SECRET_KEY={your aws secret access key}
+VPC_ID={your vpc id}
+VPC_PUBLIC_SUBNET_1={your vpc public subnet 1}
+VPC_PUBLIC_SUBNET_2={your vpc public subnet 2}
+VPC_PUBLIC_SUBNET_3={your vpc public subnet 3}
+REGION={your aws region }
+DB_HOST={your db host}
+DB_NAME={your db name}
+DB_USERNAME={your db username}
+DB_PASSWORD={your db password}
+DB_PORT={your db port}
+```
+
+For more information about the terraform setup, view the [terraform README](terraform/README.md)
+
+## How to run the project
+
+### Run locally 
+
+1. Add the environment setup details to a local postgres database in your .env file.
+2. Run the files schema.sql then seed.sql on your local database.
+3. Run the handler function from load_outages.py in the [outages subdirectory](etl_pipeline/outages/README.md) and load_main.py in the [power_readings subdirectory](etl_pipeline/power_readings/README.md).
+4. Run the dashboard.py file using streamlit to view the visualisations and sign up.
+5. Run the handler function from summary_report_html.py to view the theoretical email and recipients for the summary emails
+6. Run the handler function from power_outages_emails.py to view the theoretical power outage alerts and the recipients.
+7. Repeat step 3 to add more entries to the database.
+
+### Run on the cloud
+
+1. Add setup details to .env file and terraform.tfvars file. 
+2. Follow the instructions in the [Terraform readme](terraform/README.md).
+3. Run the dashboard from the ecs tasks public ip address using port 8501 e.g ```{public ip address}:8501```.
 
 
-## Elevator Pitch 
+## Diagrams 
+For more information about the diagrams, view the [diagrams README](diagrams/README.md)
 
-A pipeline that tracks energy generation/costs, providing users with a single location to find a clear, understandable overview of power usage in the UK.
+### Architecture
+![Architecture diagram](diagrams/architecture_diagram.png)
 
-## Data Sources 
-
-Elexon Insights APIs (data on price and generation, updated at 5-30 minute intervals)
-The Carbon Intensity Forecast
-The National Grid ESO data portal
-The data feeds of various network operators, including information on current power outages (probably some scraping required here)
-Octopus Energy API
-
-## Proposed Solution & Functionality
-
-The project will require several distinct elements:
-
-  An extraction process that regularly gathers the latest data (given complexity of sources, this may actually end up being several processes running at slightly different frequencies – e.g. every 5 minutes for pricing from the API, but scraping power outages ~hourly)
-  
-  A database to store the collected data
-  
-  A dashboard to allow users to conduct interactive analysis
-  
-  A reporting process that produces summaries/alerts
-
-## Planned outputs
-
-An interactive dashboard that allows users to track & analyse power generation (e.g. by source), carbon intensity, and price both in near real-time and historically
-
-Regular summary reports for subscribed users on power generation/price/carbon
-
-Subscribable alerts for power outages in specific postcode regions.
-
-## Tools & Technology Stack
-
-Python (requests, Pandas, Psycopg2)
-SQL
-AWS (RDS, ECS, SNS/SES)
-
-## Stretch Goals
-
-Compare live pricing to existing tariffs offered by providers, so that users can see how much money they are saving/spending and which deals are best
+### ERD
+![ERD](diagrams/energy-monitor-erd.png)
