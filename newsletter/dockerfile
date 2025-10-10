@@ -7,7 +7,7 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
-# Load all necessary files for the ETL pipelines
+
 COPY newsletter_queries.py .
 COPY summary_report_html.py .
 COPY plugged_in_logo.png .
