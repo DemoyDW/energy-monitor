@@ -53,15 +53,15 @@ def get_average_generation(conn) -> pd.DataFrame:
     """
     query = """
             SELECT
-                ROUND(AVG(gas)::numeric, 2) AS gas,
-                ROUND(AVG(coal)::numeric, 2) AS coal,
-                ROUND(AVG(biomass)::numeric, 2) AS biomass,
-                ROUND(AVG(nuclear)::numeric, 2) AS nuclear,
-                ROUND(AVG(hydro)::numeric, 2) AS hydro,
-                ROUND(AVG(wind)::numeric, 2) AS wind,
-                ROUND(AVG(solar)::numeric, 2) AS solar,
-                ROUND(AVG(other)::numeric, 2) AS other,
-                ROUND(AVG(imports)::numeric, 2) AS imports
+                ROUND(AVG(gas)::numeric, 2) AS "Gas",
+                ROUND(AVG(coal)::numeric, 2) AS "Coal",
+                ROUND(AVG(biomass)::numeric, 2) AS "Biomass",
+                ROUND(AVG(nuclear)::numeric, 2) AS "Nuclear",
+                ROUND(AVG(hydro)::numeric, 2) AS "Hydro",
+                ROUND(AVG(wind)::numeric, 2) AS "Wind",
+                ROUND(AVG(solar)::numeric, 2) AS "Solar",
+                ROUND(AVG(other)::numeric, 2) AS "Other",
+                ROUND(AVG(imports)::numeric, 2) AS "Imports"
             FROM power_reading
             WHERE date_time >= NOW() - INTERVAL '7 days';
         """
@@ -83,9 +83,9 @@ def get_grouped_generation_mix(conn) -> pd.DataFrame:
     """
     query = """
         SELECT
-            ROUND(AVG(wind + solar + hydro + biomass)::numeric, 2) AS renewable,
-            ROUND(AVG(gas + coal)::numeric, 2) AS fossil_fuels,
-            ROUND(AVG(nuclear + other + imports)::numeric, 2) AS other
+            ROUND(AVG(wind + solar + hydro + biomass)::numeric, 2) AS "Renewable",
+            ROUND(AVG(gas + coal)::numeric, 2) AS "Fossil fuels",
+            ROUND(AVG(nuclear + other + imports)::numeric, 2) AS "Other"
         FROM power_reading
         WHERE date_time >= NOW() - INTERVAL '7 days';
     """
@@ -105,13 +105,13 @@ def get_interconnector_net_flow(conn) -> pd.DataFrame:
     """
     query = """
         SELECT
-            ROUND(SUM(belgium)::numeric, 2) AS belgium,
-            ROUND(SUM(denmark)::numeric, 2) AS denmark,
-            ROUND(SUM(france)::numeric, 2) AS france,
-            ROUND(SUM(ireland)::numeric, 2) AS ireland,
-            ROUND(SUM(netherlands)::numeric, 2) AS netherlands,
-            ROUND(SUM(n_ireland)::numeric, 2) AS n_ireland,
-            ROUND(SUM(norway)::numeric, 2) AS norway
+            ROUND(SUM(belgium)::numeric, 2) AS "Belgium",
+            ROUND(SUM(denmark)::numeric, 2) AS "Denmark",
+            ROUND(SUM(france)::numeric, 2) AS "France",
+            ROUND(SUM(ireland)::numeric, 2) AS "Ireland",
+            ROUND(SUM(netherlands)::numeric, 2) AS "Netherlands",
+            ROUND(SUM(n_ireland)::numeric, 2) AS "N. Ireland",
+            ROUND(SUM(norway)::numeric, 2) AS "Norway"
         FROM power_reading
         WHERE date_time >= NOW() - INTERVAL '7 days';
     """
@@ -119,10 +119,10 @@ def get_interconnector_net_flow(conn) -> pd.DataFrame:
         cur.execute(query)
         row = cur.fetchone()
 
-    df = pd.DataFrame(list(row.items()), columns=['Country', 'Net Flow'])
+    df = pd.DataFrame(list(row.items()), columns=['Country', 'Net Flow (MW)'])
 
     directions = []
-    for flow in df['Net Flow']:
+    for flow in df['Net Flow (MW)']:
         if flow > 0:
             directions.append('Import')
         elif flow < 0:
@@ -137,8 +137,9 @@ def get_interconnector_net_flow(conn) -> pd.DataFrame:
 
 def get_total_import_export(df: pd.DataFrame) -> tuple:
     """Returns the total energy import and export values over the week."""
-    total_import = df.loc[df['Direction'] == 'Import', 'Net Flow'].sum()
-    total_export = df.loc[df['Direction'] == 'Export', 'Net Flow'].abs().sum()
+    total_import = df.loc[df['Direction'] == 'Import', 'Net Flow (MW)'].sum()
+    total_export = df.loc[df['Direction'] ==
+                          'Export', 'Net Flow (MW)'].abs().sum()
 
     return float(total_import), float(total_export)
 
