@@ -19,10 +19,12 @@ _BULK_URL = "https://api.postcodes.io/postcodes"
 
 
 def normalize_postcode(pc: str) -> str:
+    """ Make sure the postcodes are in the correct format. """
     return " ".join(str(pc).upper().split()) if pc else pc
 
 
 def _load_cache() -> Dict[str, Tuple[float, float]]:
+    """ Load all the data so it is ready to be loaded quickly next time. """
     if _CACHE.exists():
         try:
             raw = json.loads(_CACHE.read_text())
@@ -33,10 +35,12 @@ def _load_cache() -> Dict[str, Tuple[float, float]]:
 
 
 def _save_cache(cache: Dict[str, Tuple[float, float]]):
+    """ Save all the cached data. """
     _CACHE.write_text(json.dumps({k: [v[0], v[1]] for k, v in cache.items()}))
 
 
 def _chunks(xs: List[str], n=100):
+    """ Returns a list of cached data. """
     for i in range(0, len(xs), n):
         yield xs[i:i+n]
 
